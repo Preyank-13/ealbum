@@ -19,7 +19,7 @@
     </div>
 
     <div class="flex items-center space-x-4">
-        <a href="{{ route('login') }}" id="view-btn" class="hidden lg:block border border-white/50 px-6 py-2 rounded font-bold uppercase text-xs hover:bg-white hover:text-black transition duration-300">
+        <a href="{{ route('user.access') }}" id="view-btn" class="hidden lg:block border border-white/50 px-6 py-2 rounded font-bold uppercase text-xs hover:bg-white hover:text-black transition duration-300">
             View eAlbum
         </a>
         <a href="{{ route('login') }}" class="bg-[#2563eb] px-6 py-2 rounded font-bold uppercase text-xs hover:bg-blue-700 transition duration-300 shadow-lg text-white">

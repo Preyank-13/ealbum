@@ -7,12 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 class Gallery extends Model
 {
     protected $table = 'galleries';
-
     protected $fillable = ['studio_id', 'images', 'status'];
+
+    // This line fixes the TypeError in your screenshots
     protected $casts = [
         'images' => 'array',
     ];
-    // Ye images array ko database mein save karte waqt JSON bana dega
 
     public function studio()
     {

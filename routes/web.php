@@ -28,6 +28,8 @@ Route::get('/about', [UserController::class, 'about'])->name('user.about');
 Route::get('/contact-us', [UserController::class, 'contact'])->name('user.contact');
 Route::get('/pricing', [UserController::class, 'price'])->name('user.price');
 Route::get('/blogs', [UserController::class, 'blog'])->name('user.blog');
+Route::get('/access', [UserController::class, 'access'])->name('user.access');
+
 
 
 // --- Auth Protected Routes ---
@@ -52,7 +54,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/album-list', [AlbumController::class, 'index'])->name('admin.album.index');
 
         Route::get('/my-gallery', [AlbumController::class, 'show'])->name('gallery.page');
-        Route::get('/admin/my-gallery', [StudioController::class, 'show'])->name('admin.my-gallery');
+        Route::get('/admin/my-gallery', [StudioController::class, 'show'])->name('admin.my-galleery');
         Route::put('/admin/my-gallery', [AlbumController::class, 'update'])->name('admin.gallery.update');
         Route::delete('/album/delete/{id}', [AlbumController::class, 'destroy'])->name('admin.album.destroy');
 

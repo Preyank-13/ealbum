@@ -27,4 +27,27 @@ class UserController extends Controller
     {
         return view('user.pages.blog');
     }
+    public function access()
+    {
+        return view('user.pages.access');
+    }
+
+    //Show Photos
+    public function showGallery($unique_code)
+{
+    // 1. Unique code se album dhundein
+    $album = \App\Models\Album::where('unique_code', $unique_code)->firstOrFail();
+
+    // 2. Us album se related gallery fetch karein
+    $gallery = \App\Models\Gallery::where('studio_id', $album->studio_id)->first();
+
+    // 3. Photos ko array format mein lein
+    $photos = [];
+    if ($gallery && !empty($gallery->images)) {
+        // Agar model mein casts set hai toh seedha use karein, nahi toh decode
+        $photos = is_array($gallery->images) ? $gallery->images : json_decode($gallery->images, true);
+    }
+
+    return view('user.pages.gallery_display', compact('album', 'photos'));
+}
 }

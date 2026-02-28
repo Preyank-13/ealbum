@@ -13,7 +13,7 @@ use Illuminate\Support\Str; // ✅ added
 class AlbumController extends Controller
 {
 
-public function apiIndex()
+    public function apiIndex()
     {
         $albums = Album::with('images')->get();
 
@@ -31,137 +31,182 @@ public function apiIndex()
 
     // Save New Album
     public function store(Request $request)
-    {
-        $request->validate([
-            'studio_name' => 'required|string|max:255',
-            'contact_person' => 'required|string|max:255',
-            'studio_email' => 'required|email|max:255',
-            'studio_contact' => 'required',
-            'album_name' => 'required|string|max:255',
-            'unique_code' => 'required|unique:albums,unique_code',
-            'cover_photo' => 'required|image|max:3072',
+{
+    $request->validate([
+        'studio_name' => 'required|string|max:255',
+        'contact_person' => 'required|string|max:255',
+        'studio_email' => 'required|email|max:255',
+        'studio_contact' => 'required',
+        'album_name' => 'required|string|max:255',
+        'unique_code' => 'required|unique:albums,unique_code',
+        'cover_photo' => 'required|image|max:40000',
+        'album_song' => 'nullable|mimes:mp3,wav|max:20000',
+        'album_photos.*' => 'image|max:40000',
+    ]);
+
+    DB::beginTransaction();
+
+    try {
+
+        // 1️⃣ Create Studio
+        $studio = Studio::create([
+            'user_id' => auth()->id(),
+            'studio_name' => $request->studio_name,
+            'contact_person' => $request->contact_person,
+            'studio_email' => $request->studio_email,
+            'studio_contact' => $request->studio_contact,
+            'experience' => $request->experience,
         ]);
 
-        DB::beginTransaction();
-
-        try {
-            $studio = Studio::create([
-                'user_id' => auth()->id(),
-                'studio_name' => $request->studio_name,
-                'contact_person' => $request->contact_person,
-                'studio_email' => $request->studio_email,
-                'studio_contact' => $request->studio_contact,
-                'experience' => $request->experience,
-            ]);
-
-            $coverPath = $request->file('cover_photo')
-                ->store('album_covers', 'public');
-
-            // ✅ define unique code properly
-            $unique_code = $request->unique_code ?? strtoupper(Str::random(10));
-
-            // ✅ fixed variables here
-            Album::create([
-                'studio_id' => $studio->id,
-                'album_name' => $request->album_name,
-                'album_type' => $request->album_type,
-                'unique_code' => $unique_code,
-                'cover_photo' => $coverPath,
-                'album_song' => $request->album_song,
-            ]);
-
-            $photos = [];
-
-            if ($request->hasFile('album_photos')) {
-                foreach ($request->file('album_photos') as $photo) {
-                    $photos[] = $photo->store('galleries', 'public');
-                }
-            }
-
-            // ✅ Step 2 Fix: Agar Model mein $casts laga hai to json_encode hatana hoga
-            Gallery::create([
-                'studio_id' => $studio->id,
-                'images' => $photos, // Seedha array pass karein
-                'status' => 'active',
-            ]);
-
-            DB::commit();
-            return redirect()->route('admin.index')
-                ->with('success', 'Album Created Successfully!');
-
-        } catch (\Exception $e) {
-            DB::rollback();
-            return back()->withInput()->withErrors($e->getMessage());
+        // 2️⃣ Cover Photo
+        $coverName = null;
+        if ($request->hasFile('cover_photo')) {
+            $file = $request->file('cover_photo');
+            $coverName = time() . '_cover_' . str_replace(' ', '_', $file->getClientOriginalName());
+            $file->storeAs('album_covers', $coverName, 'public');
         }
-    }
 
+        // 3️⃣ Song
+        $songName = null;
+        if ($request->hasFile('album_song')) {
+            $file = $request->file('album_song');
+            $songName = time() . '_song_' . str_replace(' ', '_', $file->getClientOriginalName());
+            $file->storeAs('songs', $songName, 'public');
+        }
+
+        // 4️⃣ Create Album
+        $album = Album::create([
+            'studio_id' => $studio->id,
+            'album_name' => $request->album_name,
+            'album_type' => $request->album_type,
+            'unique_code' => $request->unique_code,
+            'cover_photo' => $coverName,
+            'album_song' => $songName,
+        ]);
+
+        // 5️⃣ Multiple Photos Save Properly
+        $photoNames = [];
+
+        if ($request->hasFile('album_photos')) {
+            foreach ($request->file('album_photos') as $photo) {
+
+                $pName = time() . '_' . str_replace(' ', '_', $photo->getClientOriginalName());
+                $photo->storeAs('galleries', $pName, 'public');
+
+                $photoNames[] = $pName;
+            }
+        }
+
+        Gallery::create([
+            'studio_id' => $studio->id,
+            'images' => $photoNames,
+            'status' => 'active',
+        ]);
+
+        DB::commit();
+
+        return redirect()->route('admin.index')
+            ->with('success', 'Album Created Successfully!');
+
+    } catch (\Exception $e) {
+        DB::rollback();
+        return back()->withInput()->withErrors($e->getMessage());
+    }
+}
 
     //Update Code
 
     public function update(Request $request)
 {
-    // 1. Studio aur Album fetch karein (Logged-in user ke base par)
-    $studio = \App\Models\Studio::where('user_id', auth()->id())->first();
+    set_time_limit(300);
+
+    $studio = Studio::where('user_id', auth()->id())
+        ->with(['album', 'gallery'])
+        ->firstOrFail();
+
     $album = $studio->album;
     $gallery = $studio->gallery;
 
-    // 2. Studio Details Update
-    $studio->update([
-        'studio_name' => $request->studio_name,
-        'contact_person' => $request->contact_person,
-        'studio_email' => $request->studio_email,
-        'studio_contact' => $request->studio_contact,
-        'experience' => $request->experience,
-    ]);
+    // 1️⃣ Update Studio
+    $studio->update($request->only([
+        'studio_name',
+        'contact_person',
+        'studio_email',
+        'studio_contact',
+        'experience'
+    ]));
 
-    // 3. Album Details Update (Type, Cover & Music)
-    $albumType = ($request->album_type == 'Custom') ? $request->custom_type : $request->album_type;
-    
+    // 2️⃣ Album Type Fix
+    $albumType = ($request->album_type == 'Custom')
+        ? $request->custom_type
+        : $request->album_type;
+
     $albumData = [
         'album_name' => $request->album_name,
         'album_type' => $albumType,
     ];
 
-    // Cover Photo Update
+    // 3️⃣ Cover Update
     if ($request->hasFile('cover_photo')) {
-        $albumData['cover_photo'] = $request->file('cover_photo')->store('covers', 'public');
-    } elseif ($request->remove_cover == '1') {
-        $albumData['cover_photo'] = null; // Agar user ne X click kiya
+
+        if ($album->cover_photo) {
+            Storage::disk('public')->delete('album_covers/' . $album->cover_photo);
+        }
+
+        $file = $request->file('cover_photo');
+        $name = time() . '_cover_' . str_replace(' ', '_', $file->getClientOriginalName());
+        $file->storeAs('album_covers', $name, 'public');
+
+        $albumData['cover_photo'] = $name;
     }
 
-    // Background Music Update
+    // 4️⃣ Song Update
     if ($request->hasFile('album_song')) {
-        $albumData['album_song'] = $request->file('album_song')->store('music', 'public');
+
+        if ($album->album_song) {
+            Storage::disk('public')->delete('songs/' . $album->album_song);
+        }
+
+        $file = $request->file('album_song');
+        $name = time() . '_song_' . str_replace(' ', '_', $file->getClientOriginalName());
+        $file->storeAs('songs', $name, 'public');
+
+        $albumData['album_song'] = $name;
     }
 
     $album->update($albumData);
 
-    // 4. GALLERY LOGIC (Remove + Add Photos)
-    $currentImages = $gallery->images ?? [];
+    // 5️⃣ Gallery Logic
+    $currentImages = is_array($gallery->images)
+        ? $gallery->images
+        : [];
 
-    // Pehle: Jo images remove karni hain unhe list se nikalein
+    // Remove Selected Images
     if ($request->has('removed_images')) {
-        $currentImages = array_diff($currentImages, $request->removed_images);
-        
-        // Optional: Storage folder se bhi file delete karein
-        foreach($request->removed_images as $path) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($path);
+        foreach ($request->removed_images as $fileName) {
+
+            Storage::disk('public')->delete('galleries/' . $fileName);
+            $currentImages = array_diff($currentImages, [$fileName]);
         }
     }
 
-    // Baad mein: Nayi photos jo select ki hain unhe add karein
+    // Add New Images
     if ($request->hasFile('album_photos')) {
         foreach ($request->file('album_photos') as $photo) {
-            $currentImages[] = $photo->store('gallery', 'public');
+
+            $pName = time() . '_' . str_replace(' ', '_', $photo->getClientOriginalName());
+            $photo->storeAs('galleries', $pName, 'public');
+
+            $currentImages[] = $pName;
         }
     }
 
-    // Database update karein (array_values se indexing sahi rehti hai)
     $gallery->update([
         'images' => array_values($currentImages)
     ]);
 
-    return redirect()->back()->with('success', 'Profile and Gallery updated successfully!');
+    return redirect()->back()
+        ->with('success', 'Updated Successfully!');
 }
 
     // Delete Logic
@@ -197,37 +242,20 @@ public function apiIndex()
 
         $studio->delete();
 
-        return back()->with('success', 'Album aur uski saari photos delete ho gayi hain!');
+        return back()->with('success', 'Album and its photos have been deleted!');
     }
 
 
     // Fetch / Show Images
-    public function show()
-    {
-        $gallery = \App\Models\Gallery::whereHas('studio', function ($q) {
-            $q->where('user_id', auth()->id());
-        })->with(['studio.album'])->first();
-
-        return view('admin.pages.gallery', compact('gallery'));
-    }
-
-
-    // API Data
-    public function apiGalleries()
+   public function show()
 {
-    try {
-        $galleries = Gallery::all();
+    $studio = Studio::where('user_id', auth()->id())
+        ->with(['album', 'gallery'])
+        ->firstOrFail();
 
-        return response()->json([
-            'status' => true,
-            'data' => $galleries
-        ]);
-    } catch (\Throwable $e) {
-        return response()->json([
-            'status' => false,
-            'error' => $e->getMessage(),
-            'line' => $e->getLine()
-        ], 500);
-    }
+    $gallery = $studio->gallery;
+
+    return view('admin.pages.gallery', compact('gallery'));
 }
+
 }

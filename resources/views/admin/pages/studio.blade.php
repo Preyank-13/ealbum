@@ -9,8 +9,7 @@
 
             <div class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
 
-                <div
-                    class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 flex flex-wrap items-center justify-between gap-4">
+                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 flex flex-wrap items-center justify-between gap-4">
                     <div class="flex items-center gap-4">
                         <a href="{{ route('admin.index') }}"
                             class="bg-purple-500 text-white px-5 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-purple-600 transition active:scale-95">
@@ -56,23 +55,23 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <div class="space-y-2">
                                 <label class="text-xs font-bold text-gray-500 uppercase">Your Studio Name</label>
-                                <input type="text" name="studio_name"
+                                <input type="text" name="studio_name" required value="{{ old('studio_name') }}"
                                     class="w-full border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-400 outline-none border transition-all">
                             </div>
                             <div class="space-y-2">
                                 <label class="text-xs font-bold text-gray-500 uppercase">Studio Contact Person</label>
-                                <input type="text" name="contact_person"
+                                <input type="text" name="contact_person" required value="{{ old('contact_person') }}"
                                     class="w-full border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-400 outline-none border transition-all">
                             </div>
                             <div class="space-y-2">
                                 <label class="text-xs font-bold text-gray-500 uppercase">Studio Email</label>
-                                <input type="email" name="studio_email"
+                                <input type="email" name="studio_email" required value="{{ old('studio_email') }}"
                                     class="w-full border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-400 outline-none border transition-all">
                             </div>
                             <div class="space-y-2">
                                 <label class="text-xs font-bold text-gray-500 uppercase">Contact No</label>
                                 <div class="flex gap-2">
-                                    <input type="text" name="studio_contact"
+                                    <input type="text" name="studio_contact" required value="{{ old('studio_contact') }}"
                                         class="flex-1 border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-400 outline-none border transition-all">
                                     <button type="button"
                                         class="bg-green-50 text-green-600 border border-green-200 px-4 py-2 rounded-xl text-xs font-bold hover:bg-green-500 hover:text-white transition">
@@ -82,7 +81,7 @@
                             </div>
                             <div class="space-y-2">
                                 <label class="text-xs font-bold text-gray-500 uppercase">Photography Experience</label>
-                                <input type="text" name="experience" placeholder="e.g. 4 year, 5 month Exp."
+                                <input type="text" name="experience" placeholder="e.g. 4 year, 5 month Exp." value="{{ old('experience') }}"
                                     class="w-full border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-400 outline-none border transition-all">
                             </div>
                         </div>
@@ -93,7 +92,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="space-y-2">
                                 <label class="text-xs font-bold text-gray-500 uppercase">Your Album Name</label>
-                                <input type="text" name="album_name" placeholder="Enter Album Name"
+                                <input type="text" name="album_name" placeholder="Enter Album Name" required value="{{ old('album_name') }}"
                                     class="w-full border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-400 outline-none border transition-all">
                             </div>
 
@@ -128,7 +127,7 @@
                                 <label class="text-xs font-bold text-gray-500 uppercase">Album Cover Photo (Single)</label>
                                 <div
                                     class="flex-1 relative border-2 border-dashed border-gray-200 rounded-xl p-2 bg-gray-50 group">
-                                    <input type="file" id="coverPhoto" name="cover_photo" accept="image/*"
+                                    <input type="file" id="coverPhoto" name="cover_photo" accept="image/*" required
                                         class="absolute inset-0 opacity-0 cursor-pointer z-20">
                                     <div id="coverPlaceholder"
                                         class="flex items-center justify-center p-1 text-gray-400 text-xs gap-2">
@@ -152,7 +151,7 @@
                                 <div class="flex items-center gap-4">
                                     <div
                                         class="flex-1 border-2 border-dashed border-gray-200 rounded-2xl p-4 bg-gray-50/50">
-                                        <input type="file" id="songInput" name="album_song" accept="audio/*"
+                                        <input type="file" id="songInput" name="album_song" accept="audio/mp3,audio/wav"
                                             class="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 cursor-pointer">
                                     </div>
                                     <div id="songSuccess"
@@ -222,6 +221,10 @@
                 if ($(this).val() === 'Custom') {
                     $(this).addClass('hidden');
                     $('#customTypeInput').removeClass('hidden').focus();
+                    // Update value on input
+                    $('#customTypeInput').on('input', function(){
+                        $('#albumTypeSelect').val($(this).val());
+                    });
                 }
             });
 
@@ -259,36 +262,49 @@
                 }
 
                 $('#imageGridPreview').empty();
-                let valid = true;
+                let validCount = 0;
 
-                $.each(files, function (i, file) {
-                    if (file.size > 3 * 1024 * 1024) {
-                        alert(`${file.name} 3MB se badi hai!`);
-                        valid = false; return false;
+                Array.from(files).forEach(file => {
+                    if (file.size <= 3 * 1024 * 1024) {
+                        validCount++;
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            $('#imageGridPreview').append(`
+                                <div class="relative group aspect-square overflow-hidden rounded-2xl border border-gray-100 shadow-sm animate-fade-in-up">
+                                    <img src="${e.target.result}" class="w-full h-full object-cover">
+                                </div>`);
+                        }
+                        reader.readAsDataURL(file);
+                    } else {
+                        console.warn(`${file.name} is too large.`);
                     }
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        $('#imageGridPreview').append(`
-                        <div class="relative group aspect-square overflow-hidden rounded-2xl border border-gray-100 shadow-sm animate-fade-in-up">
-                            <img src="${e.target.result}" class="w-full h-full object-cover">
-                        </div>`);
-                    }
-                    reader.readAsDataURL(file);
                 });
 
-                if (valid) $('#imageCount').text(`${files.length} / 50 Selected`);
+                $('#imageCount').text(`${validCount} / 50 Selected`);
             });
 
             $('#songInput').change(function () {
                 const file = this.files[0];
                 if (file) {
+                    if(file.size > 10 * 1024 * 1024) {
+                        alert("Song size 10MB se kam honi chahiye!");
+                        $(this).val('');
+                        return;
+                    }
                     const url = URL.createObjectURL(file);
                     $('#songPreview').attr('src', url).removeClass('hidden');
                     $('#songSuccess').removeClass('hidden');
                 }
             });
 
-            $('#mainSubmitBtn').click(function () { $('#albumForm').submit(); });
+            $('#mainSubmitBtn').click(function () { 
+                // Final validation check before submit
+                if(!$('#coverPhoto').val()){
+                    alert("Please upload a cover photo!");
+                    return;
+                }
+                $('#albumForm').submit(); 
+            });
         });
     </script>
 
@@ -302,7 +318,6 @@
                 opacity: 0;
                 transform: translateY(10px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);

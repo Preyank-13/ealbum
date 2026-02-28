@@ -107,23 +107,34 @@
                                         <td class="px-4 py-5">{{ $data->created_at->format('d M, Y') }}</td>
                                         <td class="px-4 py-5 text-gray-400">--</td>
                                         <td class="px-4 py-5 text-center">
-                                            <div class="flex justify-center gap-3 text-[11px] font-bold">
-                                                <button
-                                                    class="text-purple-600 hover:underline transition btn-extend-validity">Extend
-                                                    Validity</button>
-                                                <span class="text-gray-200">|</span>
-                                                <button class="text-blue-500 hover:underline transition">Share</button>
-                                                <span class="text-gray-200">|</span>
+                                            <div class="flex items-center justify-center gap-4 text-xs font-semibold">
+
+                                                {{-- Extend Validity --}}
+                                                <button type="button"
+                                                    class="px-4 py-2 rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white transition-all duration-300 shadow-sm">
+                                                    Extend Validity
+                                                </button>
+
+                                                {{-- Edit --}}
+                                                <a href="{{ route('admin.gallery.update') }}"
+                                                    class="px-4 py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-300 shadow-sm">
+                                                    Edit
+                                                </a>
+
+                                                {{-- Delete --}}
                                                 <form action="{{ route('admin.album.destroy', $data->id) }}" method="POST"
-                                                    class="inline-block"
-                                                    onsubmit="return confirm('Kya aap waqai delete karna chahte hain?')">
+                                                    onsubmit="return confirm('Are you sure you want to delete this album?')">
+
                                                     @csrf
                                                     @method('DELETE')
+
                                                     <button type="submit"
-                                                        class="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition">
-                                                        <i class="fa-solid fa-trash-can"></i> Delete
+                                                        class="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all duration-300 shadow-sm">
+                                                        <i class="fa-solid fa-trash-can text-xs"></i>
+                                                        Delete
                                                     </button>
                                                 </form>
+
                                             </div>
                                         </td>
                                 @endforeach
