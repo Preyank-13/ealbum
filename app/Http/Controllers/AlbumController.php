@@ -98,74 +98,74 @@ class AlbumController extends Controller
     // ... baki methods wahi rahenge
 
     // ✅ FIXED: Update logic without ID
-   public function update(Request $request, $id)
-{
-    set_time_limit(300);
+    public function update(Request $request, $id)
+    {
+        set_time_limit(300);
 
-    // URL ki ID ke base par specific studio ko dhundhein
-    $studio = Studio::where('id', $id)
-        ->where('user_id', auth()->id())
-        ->with(['album', 'gallery'])
-        ->firstOrFail();
+        // URL ki ID ke base par specific studio ko dhundhein
+        $studio = Studio::where('id', $id)
+            ->where('user_id', auth()->id())
+            ->with(['album', 'gallery'])
+            ->firstOrFail();
 
-    $album = $studio->album;
-    $gallery = $studio->gallery;
+        $album = $studio->album;
+        $gallery = $studio->gallery;
 
-    // 1. Studio Update
-    $studio->update($request->only(['studio_name', 'contact_person', 'studio_email', 'studio_contact', 'experience']));
+        // 1. Studio Update
+        $studio->update($request->only(['studio_name', 'contact_person', 'studio_email', 'studio_contact', 'experience']));
 
-    // 2. Album Data Preparation
-    $albumType = ($request->album_type == 'Custom') ? $request->custom_type : $request->album_type;
-    $albumData = ['album_name' => $request->album_name, 'album_type' => $albumType];
+        // 2. Album Data Preparation
+        $albumType = ($request->album_type == 'Custom') ? $request->custom_type : $request->album_type;
+        $albumData = ['album_name' => $request->album_name, 'album_type' => $albumType];
 
-    // 3. Cover Photo Update
-    if ($request->hasFile('cover_photo')) {
-        if ($album->cover_photo) {
-            Storage::disk('public')->delete('album_covers/' . $album->cover_photo);
+        // 3. Cover Photo Update
+        if ($request->hasFile('cover_photo')) {
+            if ($album->cover_photo) {
+                Storage::disk('public')->delete('album_covers/' . $album->cover_photo);
+            }
+            $file = $request->file('cover_photo');
+            $name = time() . '_cover_' . str_replace(' ', '_', $file->getClientOriginalName());
+            $file->storeAs('album_covers', $name, 'public');
+            $albumData['cover_photo'] = $name;
         }
-        $file = $request->file('cover_photo');
-        $name = time() . '_cover_' . str_replace(' ', '_', $file->getClientOriginalName());
-        $file->storeAs('album_covers', $name, 'public');
-        $albumData['cover_photo'] = $name;
-    }
 
-    // 4. Song Update
-    if ($request->hasFile('album_song')) {
-        if ($album->album_song) {
-            Storage::disk('public')->delete('songs/' . $album->album_song);
+        // 4. Song Update
+        if ($request->hasFile('album_song')) {
+            if ($album->album_song) {
+                Storage::disk('public')->delete('songs/' . $album->album_song);
+            }
+            $file = $request->file('album_song');
+            $name = time() . '_song_' . str_replace(' ', '_', $file->getClientOriginalName());
+            $file->storeAs('songs', $name, 'public');
+            $albumData['album_song'] = $name;
         }
-        $file = $request->file('album_song');
-        $name = time() . '_song_' . str_replace(' ', '_', $file->getClientOriginalName());
-        $file->storeAs('songs', $name, 'public');
-        $albumData['album_song'] = $name;
-    }
 
-    $album->update($albumData);
+        $album->update($albumData);
 
-    // 5. Gallery Logic
-    $currentImages = is_array($gallery->images) ? $gallery->images : [];
-    
-    // Purani photos hatana
-    if ($request->has('removed_images')) {
-        foreach ($request->removed_images as $fileName) {
-            Storage::disk('public')->delete('galleries/' . $fileName);
-            $currentImages = array_diff($currentImages, [$fileName]);
+        // 5. Gallery Logic
+        $currentImages = is_array($gallery->images) ? $gallery->images : [];
+
+        // Purani photos hatana
+        if ($request->has('removed_images')) {
+            foreach ($request->removed_images as $fileName) {
+                Storage::disk('public')->delete('galleries/' . $fileName);
+                $currentImages = array_diff($currentImages, [$fileName]);
+            }
         }
-    }
 
-    // Nayi photos add karna
-    if ($request->hasFile('album_photos')) {
-        foreach ($request->file('album_photos') as $photo) {
-            $pName = time() . '_' . str_replace(' ', '_', $photo->getClientOriginalName());
-            $photo->storeAs('galleries', $pName, 'public');
-            $currentImages[] = $pName;
+        // Nayi photos add karna
+        if ($request->hasFile('album_photos')) {
+            foreach ($request->file('album_photos') as $photo) {
+                $pName = time() . '_' . str_replace(' ', '_', $photo->getClientOriginalName());
+                $photo->storeAs('galleries', $pName, 'public');
+                $currentImages[] = $pName;
+            }
         }
+
+        $gallery->update(['images' => array_values($currentImages)]);
+
+        return redirect()->back()->with('success', 'Updated Successfully!');
     }
-
-    $gallery->update(['images' => array_values($currentImages)]);
-
-    return redirect()->back()->with('success', 'Updated Successfully!');
-}
 
 
     public function destroy($id)
@@ -198,7 +198,7 @@ class AlbumController extends Controller
         return back()->with('success', 'Album deleted!');
     }
 
-// ✅ NEW: Added Edit Method
+    // ✅ NEW: Added Edit Method
     public function edit($id)
     {
         // Studio ID ke base par data fetch karein aur sath mein album/gallery load karein
@@ -216,70 +216,87 @@ class AlbumController extends Controller
 
 
     public function fetchAlbumContent(Request $request)
-{
-    $code = $request->input('access_code');
-    
-    // Album table se unique_code match karein
-    $album = Album::where('unique_code', $code)->first();
+    {
+        $code = $request->input('access_code');
 
-    if (!$album) {
-        return response()->json(['success' => false, 'message' => 'Invalid Access Code!']);
+        // 1. Album fetch karein uske related Studio aur Gallery ke saath
+        // Isse 'studio_name' fetch karna aasaan ho jayega
+        $album = Album::with(['studio.gallery'])->where('unique_code', $code)->first();
+
+        // 2. Agar album nahi mila
+        if (!$album) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid Access Code! Please check and try again.'
+            ]);
+        }
+
+        // 3. Studio aur Gallery data check karein
+        $studio = $album->studio;
+        $gallery = $studio ? $studio->gallery : null;
+
+        if (!$gallery) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gallery not found for this album.'
+            ]);
+        }
+
+        // 4. Final Response return karein
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'album_name' => $album->album_name, //
+                'studio_name' => $studio->studio_name, // ✅ Ab ye AJAX mein "OFFICIAL STUDIO" ko replace karega
+                'cover' => asset('storage/album_covers/' . $album->cover_photo), //
+                'music' => $album->album_song ? asset('storage/songs/' . $album->album_song) : null, //
+                'images' => array_map(function ($img) {
+                    return asset('storage/galleries/' . $img);
+                }, $gallery->images) // ✅ Gallery images array conversion
+            ]
+        ]);
     }
 
-    // Studio aur uski linked Gallery fetch karein
-    $studio = Studio::with('gallery')->find($album->studio_id);
+    public function verifyCode(Request $request)
+    {
+        $album = Album::where('unique_code', $request->access_code)->first();
 
-    return response()->json([
-        'success' => true,
-        'data' => [
-            'album_name' => $album->album_name,
-            'cover' => asset('storage/album_covers/' . $album->cover_photo),
-            'music' => $album->album_song ? asset('storage/songs/' . $album->album_song) : null,
-            'images' => array_map(function($img) {
-                return asset('storage/galleries/' . $img);
-            }, $studio->gallery->images)
-        ]
-    ]);
-}
+        if (!$album) {
+            return back()->with('error', 'Invalid Code!');
+        }
 
-public function verifyCode(Request $request) {
-    $album = Album::where('unique_code', $request->access_code)->first();
-    
-    if (!$album) {
-        return back()->with('error', 'Invalid Code!');
-    }
-    
-    // Code sahi hai toh Viewer page par bhej do
-    return redirect()->route('user.album.view', ['code' => $album->unique_code]);
-}
-
-public function showViewer($code) {
-    $album = Album::where('unique_code', $code)->with('studio.gallery')->firstOrFail();
-    
-    // PHP array mein photos convert karein
-    $images = $album->studio->gallery->images; 
-
-    return view('user.pages.viewer', compact('album', 'images'));
-}
-
-   public function show($id)
-{
-    // Specific ID aur logged-in user ka data fetch karein
-    $studio = Studio::where('id', $id)
-        ->where('user_id', auth()->id())
-        ->with(['album', 'gallery'])
-        ->first();
-
-    // Agar entry nahi milti, toh Dashboard par redirect karein
-    if (!$studio) {
-        return redirect()->route('admin.index')->with('error', 'Requested album not found.');
+        // Code sahi hai toh Viewer page par bhej do
+        return redirect()->route('user.album.view', ['code' => $album->unique_code]);
     }
 
-    $gallery = $studio->gallery;
-    
-    // Gallery view par data bhejhein
-    return view('admin.pages.gallery', compact('gallery'));
-}
+    public function showViewer($code)
+    {
+        $album = Album::where('unique_code', $code)->with('studio.gallery')->firstOrFail();
+
+        // PHP array mein photos convert karein
+        $images = $album->studio->gallery->images;
+
+        return view('user.pages.viewer', compact('album', 'images'));
+    }
+
+    public function show($id)
+    {
+        // Specific ID aur logged-in user ka data fetch karein
+        $studio = Studio::where('id', $id)
+            ->where('user_id', auth()->id())
+            ->with(['album', 'gallery'])
+            ->first();
+
+        // Agar entry nahi milti, toh Dashboard par redirect karein
+        if (!$studio) {
+            return redirect()->route('admin.index')->with('error', 'Requested album not found.');
+        }
+
+        $gallery = $studio->gallery;
+
+        // Gallery view par data bhejhein
+        return view('admin.pages.gallery', compact('gallery'));
+    }
 
 
 }

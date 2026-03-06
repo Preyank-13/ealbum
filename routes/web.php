@@ -38,6 +38,12 @@ Route::post('/access/verify', [AlbumController::class, 'verifyCode'])->name('use
 // Final Viewer Page jahan flipbook dikhegi
 Route::get('/view-album/{code}', [AlbumController::class, 'showViewer'])->name('user.album.view');
 
+// ✅ AJAX Data Fetch Route
+Route::post('/fetch-album-content', [AlbumController::class, 'fetchAlbumContent'])->name('album.fetch');
+
+// ✅ Handle Refresh (URL rewrite ke baad refresh karne par page error nahi dega)
+Route::get('/{code}', [UserController::class, 'access'])->where('code', '.*');
+
 
 // =============================================================
 // ✅ AUTH PROTECTED ROUTES (Admin Panel)
@@ -56,7 +62,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/smart-selection', [StudioController::class, 'smart'])->name('admin.smartselection');
         Route::get('/create-studio', [StudioController::class, 'studio'])->name('admin.studio'); 
         
-        // Secure Logout (image_4fbec6.jpg fix)
+        // Secure Logout
         Route::post('/logout', [StudioController::class, 'logout'])->name('admin.logout');
 
         // --- Profile Management ---
