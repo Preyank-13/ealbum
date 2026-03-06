@@ -15,9 +15,8 @@
                 </div>
             </div>
 
-            <form action="{{ route('admin.gallery.update') }}" method="POST" enctype="multipart/form-data" id="galleryUpdateForm">
-                @csrf
-                @method('PUT') 
+            {{-- FIXED: Added the specific ID to the route to avoid the "Missing required parameter" error --}}
+            <form action="{{ route('admin.gallery.update', $gallery->studio->id) }}" method="POST" enctype="multipart/form-data" id="galleryUpdateForm">                @method('PUT') 
 
                 <div class="flex h-screen overflow-hidden bg-[#f4f7fe]">
                     @include('admin.extra.sidebar')
@@ -122,9 +121,9 @@
                                             <label class="text-xs font-bold text-gray-500 uppercase">Album Type</label>
                                             @php 
                                                 $defaultTypes = ['Wedding Photography', 'Corporate Event', 'Commercial/Product', 'Maternity/Baby Shoot'];
-    $dbValue = $gallery->studio->album->album_type ?? '';
-    $oldValue = old('album_type', $dbValue);
-    $isCustom = !in_array($oldValue, $defaultTypes) && $oldValue != "";
+                                                $dbValue = $gallery->studio->album->album_type ?? '';
+                                                $oldValue = old('album_type', $dbValue);
+                                                $isCustom = !in_array($oldValue, $defaultTypes) && $oldValue != "";
                                             @endphp
                                             <select id="albumTypeSelect" name="album_type"
                                                 class="w-full border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-400 outline-none border transition-all mb-2">
@@ -180,7 +179,7 @@
                                         </div>
                                         <audio id="songPreview" controls class="{{ isset($gallery->studio->album->album_song) ? '' : 'hidden' }} w-full h-10 mt-2 rounded-lg bg-white">
                                             @if(isset($gallery->studio->album->album_song))
-                                                <source src="{{ asset('storage/' . $gallery->studio->album->album_song) }}" type="audio/mpeg">
+                                                <source src="{{ asset('storage/songs/' . $gallery->studio->album->album_song) }}" type="audio/mpeg">
                                             @endif
                                         </audio>
                                     </div>
@@ -191,7 +190,6 @@
                                             <span id="imageCountLabel" class="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-3 py-1 rounded-full uppercase">0 Selected</span>
                                         </div>
                                         <div class="border-2 border-dashed border-indigo-100 rounded-3xl p-6 bg-indigo-50/10 text-center group hover:border-indigo-400 transition-all">
-                                            {{-- FIXED: Added multiple="multiple" and z-index --}}
                                             <input type="file" id="albumImages" name="album_photos[]" multiple="multiple" accept="image/*" class="hidden">
                                             <label for="albumImages" class="cursor-pointer flex flex-col items-center">
                                                 <i class="fa-solid fa-images text-3xl text-indigo-300 group-hover:text-indigo-600 mb-2"></i>
@@ -228,18 +226,15 @@
             <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
             <script>
                 $(document).ready(function() {
-                    // LOADER LOGIC: Trigger on form submit
                     $('#galleryUpdateForm').on('submit', function() {
                         $('#uploadLoader').removeClass('hidden').addClass('flex');
                         $('#submitBtn').prop('disabled', true).addClass('opacity-50 cursor-not-allowed');
                     });
 
-                    // 1. Validation: Numbers Only
                     $('#studio_contact').on('input', function() {
                         this.value = this.value.replace(/[^0-9]/g, '');
                     });
 
-                    // 2. Remove Gallery Image
                     $('.btn-remove-image').on('click', function() {
                         const $item = $(this).closest('.gallery-item');
                         const imagePath = $item.data('image-path');
@@ -250,7 +245,6 @@
                         });
                     });
 
-                    // 3. Cover Photo Preview
                     $('#coverPhotoInput').on('change', function(e) {
                         const file = e.target.files[0];
                         if (file) {
@@ -271,7 +265,6 @@
                         $('#removeCoverInput').val('1');
                     });
 
-                    // 4. Music Logic
                     $('#songInput').on('change', function(e) {
                         const file = e.target.files[0];
                         if (file) {
@@ -292,7 +285,6 @@
                         $('#removeSongInput').val('1');
                     });
 
-                    // 5. Bulk Upload Preview (Fixing Selection)
                     $('#albumImages').on('change', function(e) {
                         const preview = $('#imageGridPreview');
                         preview.empty();
@@ -308,7 +300,6 @@
                         });
                     });
 
-                    // 6. Album Type Toggle
                     $('#albumTypeSelect').on('change', function() {
                         if ($(this).val() === 'Custom') {
                             $('#customTypeInput').removeClass('hidden').focus();

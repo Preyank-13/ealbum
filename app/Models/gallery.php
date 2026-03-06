@@ -16,6 +16,6 @@ class Gallery extends Model
 
     public function studio()
     {
-        return $this->belongsTo(Studio::class);
+        return $this->belongsTo(Studio::class, 'studio_id');
     }
 }

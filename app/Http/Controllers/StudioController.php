@@ -44,15 +44,14 @@ class StudioController extends Controller
     {
         return view('admin.pages.gallery');
     }
-    
+
     public function logout(Request $request)
     {
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect()->route('login');
+        return redirect('/');
     }
-
     // Profile Update
     public function update(Request $request)
     {

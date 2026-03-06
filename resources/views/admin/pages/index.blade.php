@@ -116,7 +116,7 @@
                                                 </button>
 
                                                 {{-- Edit --}}
-                                                <a href="{{ route('admin.gallery.update') }}"
+                                                <a href="{{ route('admin.gallery.update', $data->id) }}"
                                                     class="px-4 py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-300 shadow-sm">
                                                     Edit
                                                 </a>
