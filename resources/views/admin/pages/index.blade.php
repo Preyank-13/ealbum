@@ -27,7 +27,7 @@
                                 class="fa-solid fa-money-bill-1 text-4xl group-hover:scale-110 transition-transform"></i>
                         </div>
                         <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest">eAlbum Credits</p>
-                        <h2 class="text-3xl font-black text-gray-800">100</h2>
+                        <h2 class="text-3xl font-black text-gray-800">{{ Auth::user()->credits }}</h2>
                         <a href="{{ route('admin.pages.razorpay')}}" class="text-blue-600 font-bold text-xs mt-1 hover:underline">Buy Credits</a>
                     </div>
 

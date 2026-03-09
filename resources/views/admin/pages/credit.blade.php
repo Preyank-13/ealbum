@@ -50,10 +50,32 @@
                                     </tr>
                                 </thead>
                                 <tbody id="tableBodyData" class="divide-y divide-gray-100">
-                                    <tr>
-                                        <td colspan="8" class="text-center py-16 text-gray-400 font-medium italic">No data
-                                            available in table</td>
-                                    </tr>
+                                    @forelse($creditHistory as $index => $item)
+                                        <tr>
+                                            <td class="px-4 py-4">{{ $index + 1 }}</td>
+                                            <td class="px-4 py-4">{{ $item->order_id }}</td>
+                                            <td class="px-4 py-4">
+                                                {{ \Carbon\Carbon::parse($item->purchase_date)->format('d-M-Y') }}</td>
+                                            <td class="px-4 py-4">{{ $item->album_name }}</td>
+                                            <td class="px-4 py-4 font-bold text-blue-600">{{ $item->credits }}</td>
+                                            <td class="px-4 py-4">₹{{ number_class($item->amount) }}</td>
+                                            <td class="px-4 py-4">{{ $item->payment_type }}</td>
+                                            <td class="px-4 py-4 text-gray-400 italic">{{ $item->message }}</td>
+                                            <td class="px-4 py-4">
+                                                <span
+                                                    class="px-2 py-1 rounded-full text-[10px] {{ $item->status == 'Success' ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600' }}">
+                                                    {{ $item->status }}
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-4">{{ $item->created_at->diffForHumans() }}</td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="10" class="text-center py-16 text-gray-400 font-medium italic">
+                                                No credit history found.
+                                            </td>
+                                        </tr>
+                                    @endforelse
                                 </tbody>
                             </table>
                         </div>
@@ -104,37 +126,70 @@
 
                         <ul class="text-[11px] text-gray-500 mb-8 text-left pl-2 font-medium space-y-2 leading-relaxed">
                             <li class="flex items-start">
-                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
                                 <span>Up to 10 albums per year</span>
                             </li>
                             <li class="flex items-start">
-                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
                                 <span>Up to 100 photos per album</span>
                             </li>
                             <li class="flex items-start">
-                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
                                 <span>Shareable album link</span>
                             </li>
                             <li class="flex items-start">
-                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
                                 <span>WhatsApp sharing</span>
                             </li>
                             <li class="flex items-start">
-                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
                                 <span>Mobile-friendly gallery</span>
                             </li>
                             <li class="flex items-start">
-                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
                                 <span>QR code for album</span>
                             </li>
                             <li class="flex items-start opacity-50">
-                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
                                 <span>Basic support</span>
                             </li>
                         </ul>
-                        <button
-                            class="mt-auto bg-[#3498db]/80 text-white py-3 rounded-full text-[11px] font-black uppercase hover:bg-[#3498db] shadow-md transition">Buy
-                            Now</button>
+                        <form action="{{ route('razorpay.payment') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="amount" value="999">
+                            <input type="hidden" name="plan_name" value="Basic Plan">
+                            <button type="submit"
+                                class="w-full mt-auto bg-[#3498db]/80 text-white py-3 rounded-full text-[11px] font-black uppercase hover:bg-[#3498db] shadow-md transition">Buy
+                                Now</button>
+                        </form>
                     </div>
 
                     <div
@@ -150,37 +205,70 @@
 
                         <ul class="text-[11px] text-gray-500 mb-8 text-left pl-2 font-medium space-y-2 leading-relaxed">
                             <li class="flex items-start">
-                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
                                 <span>Up to 30 albums per year</span>
                             </li>
                             <li class="flex items-start">
-                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
                                 <span>Up to 300 photos per album</span>
                             </li>
                             <li class="flex items-start">
-                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
                                 <span>Password protected albums</span>
                             </li>
                             <li class="flex items-start">
-                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
                                 <span>Custom cover photo</span>
                             </li>
                             <li class="flex items-start">
-                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
                                 <span>WhatsApp & social share</span>
                             </li>
                             <li class="flex items-start">
-                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
                                 <span>Download option for clients</span>
                             </li>
                             <li class="flex items-start">
-                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
                                 <span class="text-blue-500 font-bold text-[9px]">PRIORITY SUPPORT</span>
                             </li>
                         </ul>
-                        <button
-                            class="mt-auto bg-blue-500 text-white py-3 rounded-full text-[11px] font-black uppercase hover:bg-blue-600 shadow-lg shadow-blue-100 transition">Buy
-                            Now</button>
+                        <form action="{{ route('razorpay.payment') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="amount" value="2499">
+                            <input type="hidden" name="plan_name" value="Pro Plan">
+                            <button type="submit"
+                                class="w-full mt-auto bg-blue-500 text-white py-3 rounded-full text-[11px] font-black uppercase hover:bg-blue-600 shadow-lg shadow-blue-100 transition">Buy
+                                Now</button>
+                        </form>
                     </div>
 
                     <div
@@ -195,37 +283,70 @@
 
                         <ul class="text-[11px] text-gray-500 mb-8 text-left pl-2 font-medium space-y-2 leading-relaxed">
                             <li class="flex items-start">
-                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
                                 <span><b>Unlimited</b> albums & photos</span>
                             </li>
                             <li class="flex items-start">
-                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
                                 <span>Custom branding (studio logo)</span>
                             </li>
                             <li class="flex items-start">
-                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
                                 <span>Custom domain option</span>
                             </li>
                             <li class="flex items-start">
-                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
                                 <span>Analytics (views, downloads)</span>
                             </li>
                             <li class="flex items-start">
-                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
                                 <span>Password protected albums</span>
                             </li>
                             <li class="flex items-start">
-                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
                                 <span>QR code sharing</span>
                             </li>
                             <li class="flex items-start">
-                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
                                 <span>Priority support</span>
                             </li>
                         </ul>
-                        <button
-                            class="mt-auto bg-gray-800 text-white py-3 rounded-full text-[11px] font-black uppercase hover:bg-black shadow-md transition">Buy
-                            Now</button>
+                        <form action="{{ route('razorpay.payment') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="amount" value="4999">
+                            <input type="hidden" name="plan_name" value="Studio Plan">
+                            <button type="submit"
+                                class="w-full mt-auto bg-gray-800 text-white py-3 rounded-full text-[11px] font-black uppercase hover:bg-black shadow-md transition">Buy
+                                Now</button>
+                        </form>
                     </div>
 
                 </div>

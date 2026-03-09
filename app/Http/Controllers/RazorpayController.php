@@ -4,63 +4,65 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Razorpay\Api\Api;
-use Exception; // Exception class use karne ke liye
+use Exception;
+use App\Models\CreditHistory; // CreditHistory Model use karne ke liye
+use Illuminate\Support\Facades\Auth;
 
 class RazorpayController extends Controller
 {
     public function index()
     {
-        // Path corrected: resources/views/admin/pages/razorpay.blade.php
         return view('admin.pages.razorpay');
     }
 
     public function payment(Request $request)
     {
-
+        // 1. Request se data nikalna
         $amount = $request->input('amount');
-
-
-        // env() helper ko sahi se likhein
-        $api = new Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
-
-        $orderData = [
-            // Comma ki jagah Dot (.) use karein
-            'receipt' => 'order_' . rand(1000, 9999),
-            'amount' => $amount * 100,
-            'currency' => 'INR',
-            'payment_capture' => 1
-        ];
+        $plan_name = $request->input('plan_name');
+        $user = Auth::user();
 
         try {
-            $order = $api->order->create($orderData);
-            // Blade file ka path sahi karein agar wo admin/pages folder mein hai
-            return view('admin.pages.razorpay', ['orderId' => $order["id"], 'amount' => $amount * 100]);
-        } catch (\Exception $e) {
-            return "Razorpay Error: " . $e->getMessage();
+            // 2. Credits table mein entry save karna
+            Credit::create([
+                'user_id'       => $user->id,
+                'order_id'      => 'TEST_ORD_' . rand(1000, 9999),
+                'purchase_date' => now(),
+                'album_name'    => $plan_name,
+                'credits'       => $amount, // 1 Rs = 1 Credit logic
+                'amount'        => $amount,
+                'payment_type'  => 'Dummy/Test',
+                'message'       => 'Credit added successfully via Test Mode',
+                'status'        => 'Success',
+            ]);
+
+            // 3. User table mein total credits update karna
+            // Pakka karein ki User model ke $fillable mein 'credits' hai
+            $user->update([
+                'credits' => $user->credits + $amount
+            ]);
+
+            return redirect()->route('admin.credit')->with('success', 'Payment successful! Credits added to your account.');
+
+        } catch (Exception $e) {
+            return "Error while processing payment: " . $e->getMessage();
         }
     }
 
+
     public function callback(Request $request)
     {
-
-        $payid = $request->payid;
-        $orderid = $request->orderid;
-        $sign = $request->sign;
-
+        // Ye tab kaam aayega jab asli Razorpay chalega
         $api = new Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
-
         try {
             $attr = [
-                'razorpay_order_id' => $orderid,
-                'razorpay_payment_id' => $payid,
-                'razorpay_signature' => $sign
+                'razorpay_order_id' => $request->orderid,
+                'razorpay_payment_id' => $request->payid,
+                'razorpay_signature' => $request->sign
             ];
-
-            // Signature verify karne ka logic
             $api->utility->verifyPaymentSignature($attr);
             echo "Payment Verified Successfully!";
-
-        } catch (Exception $e) { // Spelling 'Exception' sahi ki gayi aur semicolon lagaya
+        } catch (Exception $e) {
             echo "Payment Verification Failed!: " . $e->getMessage();
         }
     }

@@ -18,10 +18,20 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-    'name', 'email', 'password', 'google_id', 
-    'business_name', 'contact_no', 'about', 
-    'address', 'city', 'country', 'zip_code', 'logo'
-];
+        'name', 
+        'email', 
+        'password', 
+        'google_id', 
+        'business_name', 
+        'contact_no', 
+        'about', 
+        'address', 
+        'city', 
+        'country', 
+        'zip_code', 
+        'logo',
+        'credits' // User ke current credit balance ko store karne ke liye
+    ];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -45,8 +55,21 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * Relationship with Studio model
+     */
     public function studios()
-{
-    return $this->hasMany(Studio::class);
-}
+    {
+        return $this->hasMany(Studio::class);
+    }
+
+    /**
+     * Relationship with Credit model (Aapne 'Credit' naam rakha hai)
+     * Isse aap user ki saari credit history fetch kar payenge.
+     */
+    public function creditHistory()
+    {
+        return $this->hasMany(Credit::class); 
+    }
 }

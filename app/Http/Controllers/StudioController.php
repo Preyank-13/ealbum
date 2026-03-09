@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Studio;
 use App\Models\Album;
+use App\Models\Credit; // 1. Naya Model Import kiya
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -28,10 +29,8 @@ class StudioController extends Controller
         return view('admin.pages.profile', compact('user'));
     }
 
-    public function credit()
-    {
-        return view('admin.pages.credit');
-    }
+    // 2. Pehla wala khali credit() function hata diya
+    
     public function smart()
     {
         return view('admin.pages.smartselection');
@@ -86,15 +85,24 @@ class StudioController extends Controller
     }
 
     public function handlePricingRedirect()
-{
-    // 1. Check karo user logged in hai ya nahi
-    if (auth()->check()) {
-        // Agar logged in hai, toh seedha admin ke credit page par bhej do
-        return redirect()->route('admin.credit'); //
+    {
+        // 1. Check karo user logged in hai ya nahi
+        if (auth()->check()) {
+            // Agar logged in hai, toh seedha admin ke credit page par bhej do
+            return redirect()->route('admin.credit'); 
+        }
+
+        // 2. Agar login nahi hai, toh login page par bhejo
+        return redirect()->guest(route('login'))->with('url.intended', route('admin.credit'));
     }
 
-    // 2. Agar login nahi hai, toh login page par bhejo
-    // intended() function ye yaad rakhta hai ki login ke baad kahan jana tha
-    return redirect()->guest(route('login'))->with('url.intended', route('admin.credit'));
-}
+    public function credit()
+    {
+        // Logged-in user ki saari credit history latest pehle
+        $creditHistory = Credit::where('user_id', Auth::id())
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('admin.pages.credit', compact('creditHistory'));
+    }
 }
