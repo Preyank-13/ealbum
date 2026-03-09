@@ -102,22 +102,34 @@
                         <p class="text-[10px] text-gray-400 mb-6 font-bold uppercase tracking-tighter">Best for small
                             photographers</p>
 
-                        <ul class="text-[11px] text-gray-500 mb-8 text-left pl-2 font-medium leading-relaxed">
+                        <ul class="text-[11px] text-gray-500 mb-8 text-left pl-2 font-medium space-y-2 leading-relaxed">
                             <li class="flex items-start">
-                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none"
-                                    stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
-                                        d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                <span>
-                                    Up to 10 albums per year<br>
-                                    Up to 100 photos per album<br>
-                                    Shareable album link<br>
-                                    WhatsApp sharing<br>
-                                    Mobile-friendly gallery<br>
-                                    QR code for album<br>
-                                    <span class="text-gray-400">Basic support</span>
-                                </span>
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <span>Up to 10 albums per year</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <span>Up to 100 photos per album</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <span>Shareable album link</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <span>WhatsApp sharing</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <span>Mobile-friendly gallery</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <span>QR code for album</span>
+                            </li>
+                            <li class="flex items-start opacity-50">
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <span>Basic support</span>
                             </li>
                         </ul>
                         <button
@@ -136,22 +148,34 @@
                         <p class="text-[10px] text-gray-400 mb-6 font-bold uppercase tracking-tighter">Professional
                             Photographers</p>
 
-                        <ul class="text-[11px] text-gray-500 mb-8 text-left pl-2 font-medium leading-relaxed">
+                        <ul class="text-[11px] text-gray-500 mb-8 text-left pl-2 font-medium space-y-2 leading-relaxed">
                             <li class="flex items-start">
-                                <svg class="w-3 h-3 text-blue-500 mr-2 mt-0.5 flex-shrink-0" fill="none"
-                                    stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
-                                        d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                <span>
-                                    Up to 30 albums per year<br>
-                                    Up to 300 photos per album<br>
-                                    Password protected albums<br>
-                                    Custom cover photo<br>
-                                    WhatsApp & social share<br>
-                                    Download option for clients<br>
-                                    <span class="text-blue-500 font-bold text-[9px]">PRIORITY SUPPORT</span>
-                                </span>
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <span>Up to 30 albums per year</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <span>Up to 300 photos per album</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <span>Password protected albums</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <span>Custom cover photo</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <span>WhatsApp & social share</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <span>Download option for clients</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <span class="text-blue-500 font-bold text-[9px]">PRIORITY SUPPORT</span>
                             </li>
                         </ul>
                         <button
@@ -169,22 +193,34 @@
                         <p class="text-[10px] text-gray-400 mb-6 font-bold uppercase tracking-tighter">Best for heavy users
                         </p>
 
-                        <ul class="text-[11px] text-gray-500 mb-8 text-left pl-2 font-medium leading-relaxed">
+                        <ul class="text-[11px] text-gray-500 mb-8 text-left pl-2 font-medium space-y-2 leading-relaxed">
                             <li class="flex items-start">
-                                <svg class="w-3 h-3 text-purple-500 mr-2 mt-0.5 flex-shrink-0" fill="none"
-                                    stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
-                                        d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                <span>
-                                    <b>Unlimited</b> albums & photos<br>
-                                    Custom branding (studio logo)<br>
-                                    Custom domain option<br>
-                                    Analytics (views, downloads)<br>
-                                    Password protected albums<br>
-                                    QR code sharing<br>
-                                    Priority support
-                                </span>
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <span><b>Unlimited</b> albums & photos</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <span>Custom branding (studio logo)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <span>Custom domain option</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <span>Analytics (views, downloads)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <span>Password protected albums</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <span>QR code sharing</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="w-3 h-3 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                <span>Priority support</span>
                             </li>
                         </ul>
                         <button
@@ -228,8 +264,6 @@
                 }, 300);
                 $('body').removeClass('overflow-hidden');
             });
-
-            // 🟢 TABS SWITCHING LOGIC CLEANED: Removed 'if/else' switching as only one view remains
         });
     </script>
 @endsection
