@@ -84,4 +84,17 @@ class StudioController extends Controller
 
         return back()->with('status', 'Profile Updated Successfully!');
     }
+
+    public function handlePricingRedirect()
+{
+    // 1. Check karo user logged in hai ya nahi
+    if (auth()->check()) {
+        // Agar logged in hai, toh seedha admin ke credit page par bhej do
+        return redirect()->route('admin.credit'); //
+    }
+
+    // 2. Agar login nahi hai, toh login page par bhejo
+    // intended() function ye yaad rakhta hai ki login ke baad kahan jana tha
+    return redirect()->guest(route('login'))->with('url.intended', route('admin.credit'));
+}
 }

@@ -19,11 +19,10 @@
             display: flex; 
             align-items: center; 
             justify-content: center;
-            height: 82vh; /* Album size badhaya gaya hai */
+            height: 82vh; 
             width: 100%;
         }
 
-        /* Album size increased for bigger photos */
         #flipbook { width: 1300px; height: 800px; display: none; box-shadow: 0 0 100px rgba(0,0,0,0.8); margin: 0 auto; }
         
         /* 2. Photo Sizing & No-Crop Logic */
@@ -86,7 +85,9 @@
             <div class="absolute left-1/2 -translate-x-1/2 text-center"><h1 id="display-album-name" class="text-white font-black tracking-tighter text-lg uppercase">ALBUM NAME</h1></div>
             <div class="flex items-center gap-5 text-white">
                 <button class="bg-indigo-600 hover:bg-indigo-700 px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase flex items-center gap-2 transition-all"><i class="fa-solid fa-video"></i> Create Video</button>
-                <i class="fa-solid fa-share-nodes cursor-pointer opacity-60 hover:opacity-100 transition-all"></i>
+                
+                <i onclick="shareAlbum()" class="fa-solid fa-share-nodes cursor-pointer opacity-60 hover:opacity-100 transition-all"></i>
+                
                 <i class="fa-solid fa-circle-info cursor-pointer opacity-60 hover:opacity-100 transition-all"></i>
             </div>
         </div>
@@ -146,6 +147,23 @@
             if (savedCode) { $('#unique_code').val(savedCode); unlockAlbum(); }
         });
 
+        // Professional Share Logic
+        async function shareAlbum() {
+            const shareData = {
+                title: document.title,
+                text: 'Experience these memories in our eAlbum: ' + $('#display-album-name').text(),
+                url: window.location.href
+            };
+            try {
+                if (navigator.share) {
+                    await navigator.share(shareData);
+                } else {
+                    navigator.clipboard.writeText(shareData.url);
+                    alert("🔗 Link copied to clipboard!");
+                }
+            } catch (err) { console.log('Error sharing:', err); }
+        }
+
         function unlockAlbum() {
             const code = $('#unique_code').val().trim();
             if (!code) return alert("❌ Code required");
@@ -172,11 +190,11 @@
                         const thumbStrip = $('#thumbnail-strip');
                         flipbook.empty(); thumbStrip.empty();
 
-                        /* 1. Cover Page logic for Dead Center */
+                        /* Cover Page centered */
                         flipbook.append(`<div class="page hard shadow-2xl"><img src="${data.cover}"></div>`);
                         thumbStrip.append(`<img src="${data.cover}" onclick="$('#flipbook').turn('page', 1)" class="thumb-img active">`);
 
-                        /* 2. Fetched images bigger size */
+                        /* Fetched images bigger view */
                         data.images.forEach((img, index) => {
                             flipbook.append(`<div class="page shadow-md"><img src="${img}"></div>`);
                             thumbStrip.append(`<img src="${img}" onclick="$('#flipbook').turn('page', ${index + 2})" class="thumb-img">`);
@@ -189,7 +207,7 @@
                             $('#loader').fadeOut(600);
                             $('#viewer-container').removeClass('hidden');
 
-                            /* Realistic Split View Initialization */
+                            /* Turn.js Centering */
                             flipbook.show().turn({
                                 width: 1300, 
                                 height: 800, 

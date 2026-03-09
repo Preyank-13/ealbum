@@ -25,7 +25,7 @@
         <a href="{{ route('admin.credit') }}" class="nav-item flex items-center gap-4 p-3 rounded-xl transition-all duration-300 group relative 
            {{ Route::is('admin.credit') ? 'active text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white' }}">
             <i class="fa-solid fa-credit-card text-xl min-w-[40px] text-center group-hover:scale-110 transition-transform"></i>
-            <span class="sidebar-text font-medium whitespace-nowrap opacity-100 transition-all duration-300">Credit Details</span>
+            <span class="sidebar-text font-medium whitespace-nowrap opacity-100 transition-all duration-300">{{ Auth::user()->name }}'s Credit Details</span>
             <div class="active-indicator absolute left-0 w-1 h-8 bg-white rounded-r-full {{ Route::is('admin.credit') ? '' : 'hidden' }}"></div>
         </a>
 

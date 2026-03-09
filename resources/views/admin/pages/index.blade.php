@@ -18,7 +18,7 @@
                                 class="fa-solid fa-file-video text-4xl group-hover:scale-110 transition-transform"></i>
                         </div>
                         <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Total Creation</p>
-                        <h2 class="text-3xl font-black text-gray-800">2</h2>
+                        <h2 class="text-3xl font-black text-gray-800">0</h2>
                     </div>
 
                     <div
@@ -27,8 +27,8 @@
                                 class="fa-solid fa-money-bill-1 text-4xl group-hover:scale-110 transition-transform"></i>
                         </div>
                         <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest">eAlbum Credits</p>
-                        <h2 class="text-3xl font-black text-gray-800">1</h2>
-                        <a href="#" class="text-blue-600 font-bold text-xs mt-1 hover:underline">Buy Credits</a>
+                        <h2 class="text-3xl font-black text-gray-800">100</h2>
+                        <a href="{{ route('admin.pages.razorpay')}}" class="text-blue-600 font-bold text-xs mt-1 hover:underline">Buy Credits</a>
                     </div>
 
                     <div
@@ -37,7 +37,7 @@
                                 class="fa-solid fa-crown text-4xl group-hover:scale-110 transition-transform"></i></div>
                         <p class="text-gray-400 text-[10px] leading-tight font-bold uppercase tracking-tighter">No Active
                             Subscription</p>
-                        <a href="#" class="text-blue-600 font-bold text-xs mt-1 hover:underline">Get Subscription</a>
+                        <a href="{{ route('admin.pages.razorpay') }}" class="text-blue-600 font-bold text-xs mt-1 hover:underline">Get Subscription</a>
                     </div>
 
                     <div
@@ -46,7 +46,7 @@
                                 class="fa-solid fa-phone-volume text-4xl group-hover:scale-110 transition-transform"></i>
                         </div>
                         <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest">For support contact</p>
-                        <h2 class="text-blue-600 font-bold text-lg">+918128066331</h2>
+                        <h2 class="text-blue-600 font-bold text-lg">+91 9137634193</h2>
                     </div>
                 </div>
 
