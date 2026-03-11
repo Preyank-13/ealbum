@@ -18,19 +18,22 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name', 
-        'email', 
-        'password', 
-        'google_id', 
-        'business_name', 
-        'contact_no', 
-        'about', 
-        'address', 
-        'city', 
-        'country', 
-        'zip_code', 
+        'name',
+        'email',
+        'password',
+        'google_id',
+        'business_name',
+        'contact_no',
+        'about',
+        'address',
+        'city',
+        'country',
+        'zip_code',
         'logo',
-        'credits' // User ke current credit balance ko store karne ke liye
+        'credits',
+        'is_unlimited',      
+        'active_plan',
+        'plan_expires_at',   
     ];
 
     /**
@@ -52,7 +55,8 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'plan_expires_at' => 'datetime',
+            'password' => 'hashed'
         ];
     }
 
@@ -70,6 +74,6 @@ class User extends Authenticatable
      */
     public function creditHistory()
     {
-        return $this->hasMany(Credit::class); 
+        return $this->hasMany(Credit::class);
     }
 }

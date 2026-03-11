@@ -10,19 +10,14 @@ use Illuminate\Support\Facades\Auth;
 
 class RazorpayController extends Controller
 {
-    // Payment Page dikhane ke liye
     public function index()
     {
         return view('admin.pages.razorpay');
     }
 
-    // Razorpay Order generate karne ke liye
     public function payment(Request $request)
     {
-        // 🟢 Tip: Production mein API keys ko .env file se load karein
         $api = new Api('rzp_test_SPSlUSEJS6hnwx', 'ZfbuH0IAu4MJWy7C4Rtj1m2o');
-
-        // Amount ko paise mein convert karna (1 INR = 100 Paise)
         $amountInPaise = $request->amount * 100;
 
         try {
@@ -43,7 +38,6 @@ class RazorpayController extends Controller
         }
     }
 
-    // Payment success hone ke baad verification aur DB entry
     public function callback(Request $request)
     {
         $api = new Api('rzp_test_SPSlUSEJS6hnwx', 'ZfbuH0IAu4MJWy7C4Rtj1m2o');
@@ -55,28 +49,68 @@ class RazorpayController extends Controller
                 'razorpay_signature' => $request->sign
             ];
 
-            // Signature verify karna zaroori hai
             $api->utility->verifyPaymentSignature($attr);
 
             $user = Auth::user();
             $amountInRupees = $request->amount / 100;
 
-            // Database mein entry tabhi hogi jab signature sahi ho
+            $creditsToAdd = 0;
+            $isUnlimited = false;
+            $currentPlan = null;
+
+            // 🟢 LOGIC: Plan Hierarchy (Studio > Pro > Basic)
+            if ($amountInRupees == 4999) {
+                $creditsToAdd = 0; 
+                $isUnlimited = true;
+                $currentPlan = 'Studio';
+            } elseif ($amountInRupees == 2499) {
+                // Agar user pehle se Studio nahi hai, tabhi upgrade karein
+                if ($user->active_plan != 'Studio') {
+                    $creditsToAdd = 3000;
+                    $isUnlimited = false;
+                    $currentPlan = 'Pro';
+                }
+            } elseif ($amountInRupees == 999) {
+                // Agar user pehle se Pro ya Studio nahi hai, tabhi upgrade karein
+                if (!in_array($user->active_plan, ['Pro', 'Studio'])) {
+                    $creditsToAdd = 1000;
+                    $isUnlimited = false;
+                    $currentPlan = 'Basic';
+                }
+            } else {
+                // Normal top-up (amount >= 200 etc), isse plan change nahi hoga
+                $creditsToAdd = $amountInRupees;
+                $isUnlimited = $user->is_unlimited; // Purana status maintain rakhein
+                $currentPlan = $user->active_plan;   // Purana plan maintain rakhein
+            }
+
+            // User Model update
+            // Plan tabhi extend hoga jab teeno main plans mein se koi liya ho
+            if (in_array($amountInRupees, [999, 2499, 4999])) {
+                $user->active_plan = $currentPlan;
+                $user->is_unlimited = $isUnlimited;
+                $user->plan_expires_at = now()->addYear(); 
+            }
+            
+            if ($creditsToAdd > 0) {
+                $user->increment('credits', $creditsToAdd);
+            }
+            $user->save();
+
+            // Database History Entry
             credit::create([
                 'user_id' => $user->id,
                 'order_id' => $request->orderid,
                 'purchase_date' => now(),
-                'album_name' => $request->plan_name ?? 'Credit Purchase',
-                'credits' => $amountInRupees,
+                'album_name' => $currentPlan ? $currentPlan . ' Plan' : 'Credit Top-up',
+                'credits' => ($amountInRupees == 4999) ? 0 : $creditsToAdd,
                 'amount' => $amountInRupees,
                 'payment_type' => 'Razorpay Online',
                 'status' => 'Success',
-                // 🟢 FIXED: Dynamic message yahan add kiya hai taaki History mein dikhe
-                'message' => $amountInRupees . ' credits added successfully',
+                'message' => ($amountInRupees == 4999) 
+                             ? 'Studio Plan Activated (Unlimited Albums for 1 Year)' 
+                             : $creditsToAdd . ' credits added successfully',
             ]);
-
-            // User ka balance increment karein
-            $user->increment('credits', $amountInRupees);
 
             return redirect()->route('admin.credit')->with('success', 'Payment Successful!');
 
@@ -85,10 +119,8 @@ class RazorpayController extends Controller
         }
     }
 
-    // Fetch Credit History
     public function credit()
     {
-        // Sirf logged-in user ki history fetch karein aur latest upar dikhayein
         $creditHistory = \App\Models\credit::where('user_id', auth()->id())
             ->latest()
             ->get();

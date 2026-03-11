@@ -12,19 +12,35 @@
             <div class="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
 
                 {{-- 🟢 Alert Messages for Credit Errors or Success --}}
-                @if(session('error'))
-                    <div
-                        class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mb-4 shadow-sm animate-pulse">
-                        <span class="block sm:inline font-bold"><i
-                                class="fa-solid fa-circle-exclamation mr-2"></i>{{ session('error') }}</span>
+                @if(session('success'))
+                    <div id="alert-success"
+                        class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-xl relative mb-4 shadow-sm flex justify-between items-center transition-opacity duration-300">
+
+                        <span class="font-bold flex items-center">
+                            <i class="fa-solid fa-circle-check mr-2"></i>
+                            {{ session('success') }}
+                        </span>
+
+                        <button type="button" onclick="document.getElementById('alert-success').style.display='none'"
+                            class="text-green-700 hover:text-green-900 transition-colors">
+                            <i class="fa-solid fa-xmark text-lg"></i>
+                        </button>
                     </div>
                 @endif
 
-                @if(session('success'))
-                    <div
-                        class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-xl relative mb-4 shadow-sm">
-                        <span class="block sm:inline font-bold"><i
-                                class="fa-solid fa-circle-check mr-2"></i>{{ session('success') }}</span>
+                @if(session('error'))
+                    <div id="alert-error"
+                        class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mb-4 shadow-sm flex justify-between items-center">
+
+                        <span class="font-bold flex items-center">
+                            <i class="fa-solid fa-circle-exclamation mr-2"></i>
+                            {{ session('error') }}
+                        </span>
+
+                        <button type="button" onclick="document.getElementById('alert-error').style.display='none'"
+                            class="text-red-700 hover:text-red-900">
+                            <i class="fa-solid fa-xmark text-lg"></i>
+                        </button>
                     </div>
                 @endif
 
@@ -44,7 +60,8 @@
                         <div class="text-yellow-500 mb-2"><i
                                 class="fa-solid fa-money-bill-1 text-4xl group-hover:scale-110 transition-transform"></i>
                         </div>
-                        <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest">eAlbum Credits Available</p>
+                        <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest">eAlbum Credits Available
+                        </p>
                         <h2 class="text-3xl font-black text-gray-800">{{ Auth::user()->credits }}</h2>
                         <a href="{{ route('admin.razorpay.index')}}"
                             class="text-blue-600 font-bold text-xs mt-1 hover:underline">Buy Credits</a>
@@ -52,12 +69,28 @@
 
                     <div
                         class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center group hover:shadow-md transition-all">
-                        <div class="text-amber-400 mb-2"><i
-                                class="fa-solid fa-crown text-4xl group-hover:scale-110 transition-transform"></i></div>
-                        <p class="text-gray-400 text-[10px] leading-tight font-bold uppercase tracking-tighter">No Active
-                            Subscription</p>
-                        <a href="{{ route('admin.razorpay.index') }}"
-                            class="text-blue-600 font-bold text-xs mt-1 hover:underline">Get Subscription</a>
+                        <div class="text-amber-400 mb-2">
+                            <i
+                                class="fa-solid fa-crown text-4xl group-hover:scale-110 transition-transform {{ auth()->user()->active_plan ? 'text-yellow-500' : 'text-gray-300' }}"></i>
+                        </div>
+
+                        @if(auth()->user()->active_plan && auth()->user()->plan_expires_at && now()->lt(auth()->user()->plan_expires_at))
+                            <p class="text-gray-400 text-[10px] leading-tight font-bold uppercase tracking-tighter">Active
+                                Subscription</p>
+                            <h3 class="text-lg font-bold text-gray-800 uppercase">{{ auth()->user()->active_plan }} Plan</h3>
+
+                            <p class="text-blue-600 font-bold text-[11px] mt-1">
+                                Expires: {{ auth()->user()->plan_expires_at->format('d M, Y') }}
+                            </p>
+                            <p class="text-gray-400 text-[9px]">
+                                ({{ (int) now()->diffInDays(auth()->user()->plan_expires_at) }} days left)
+                            </p>
+                        @else
+                            <p class="text-gray-400 text-[10px] leading-tight font-bold uppercase tracking-tighter">No Active
+                                Subscription</p>
+                            <a href="{{ route('admin.razorpay.index') }}"
+                                class="text-blue-600 font-bold text-xs mt-1 hover:underline">Get Subscription</a>
+                        @endif
                     </div>
 
                     <div
@@ -106,50 +139,65 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100 text-[12px]">
-    @foreach ($albums as $data)
-        <tr class="hover:bg-indigo-50/30 transition-all group">
-            <td class="px-2 py-4 font-bold text-blue-600 text-center">{{ $loop->iteration }}</td>
-            <td class="px-2 py-4 font-medium">{{ $data->album->unique_code }}</td>
-            <td class="px-2 py-4">
-                <span class="bg-blue-100 text-blue-600 px-2 py-0.5 rounded text-[9px] font-bold uppercase block w-max">
-                    {{ $data->album->album_type ?? 'N/A' }}
-                </span>
-            </td>
-            <td class="px-2 py-4 font-bold text-gray-700 max-w-[150px] whitespace-normal leading-tight">
-                {{ $data->album->album_name }}
-            </td>
-            <td class="px-2 py-4 whitespace-nowrap">{{ $data->contact_person }}</td>
-            <td class="px-2 py-4 whitespace-nowrap">{{ $data->experience }}</td>
-            <td class="px-2 py-4">{{ $data->studio_contact }}</td>
-            <td class="px-2 py-4 whitespace-nowrap">{{ $data->created_at->format('d M, Y') }}</td>
-            <td class="px-2 py-4 text-gray-400">--</td>
-            <td class="px-2 py-4">
-                <div class="flex items-center justify-start gap-2 flex-nowrap">
-                    <button type="button"
-                        class="px-3 py-1.5 rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white transition-all duration-300 shadow-sm text-[11px] whitespace-nowrap btn-extend-validity">
-                        Extend Validity
-                    </button>
+                                @foreach ($albums as $data)
+                                    <tr class="hover:bg-indigo-50/30 transition-all group">
+                                        <td class="px-2 py-4 font-bold text-blue-600 text-center">{{ $loop->iteration }}</td>
+                                        <td class="px-2 py-4 font-medium">{{ $data->album->unique_code }}</td>
+                                        <td class="px-2 py-4">
+                                            <span
+                                                class="bg-blue-100 text-blue-600 px-2 py-0.5 rounded text-[9px] font-bold uppercase block w-max">
+                                                {{ $data->album->album_type ?? 'N/A' }}
+                                            </span>
+                                        </td>
+                                        <td
+                                            class="px-2 py-4 font-bold text-gray-700 max-w-[150px] whitespace-normal leading-tight">
+                                            {{ $data->album->album_name }}
+                                        </td>
+                                        <td class="px-2 py-4 whitespace-nowrap">{{ $data->contact_person }}</td>
+                                        <td class="px-2 py-4 whitespace-nowrap">{{ $data->experience }}</td>
+                                        <td class="px-2 py-4">{{ $data->studio_contact }}</td>
+                                        <td class="px-2 py-4 whitespace-nowrap">{{ $data->created_at->format('d M, Y') }}</td>
+                                        <td class="px-2 py-4 text-gray-400">
+                                            @if(auth()->user()->plan_expires_at)
+                                                <p>
+                                                    <strong>Plan Validity:</strong>
+                                                    {{ auth()->user()->plan_expires_at->format('d-m-Y') }}
+                                                    <span class="text-muted">
+                                                        ({{ (int) now()->diffInDays(auth()->user()->plan_expires_at) }} days left)
+                                                    </span>
+                                                </p>
+                                            @else
+                                                <p>No active plan found.</p>
+                                            @endif
+                                        </td>
+                                        <td class="px-2 py-4">
+                                            <div class="flex items-center justify-start gap-2 flex-nowrap">
+                                                <button type="button"
+                                                    class="px-3 py-1.5 rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white transition-all duration-300 shadow-sm text-[11px] whitespace-nowrap btn-extend-validity">
+                                                    Extend Validity
+                                                </button>
 
-                    <a href="{{ route('admin.gallery.update', $data->id) }}"
-                        class="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-300 shadow-sm text-[11px]">
-                        Edit
-                    </a>
+                                                <a href="{{ route('admin.gallery.update', $data->id) }}"
+                                                    class="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-300 shadow-sm text-[11px]">
+                                                    Edit
+                                                </a>
 
-                    <form action="{{ route('admin.album.destroy', $data->id) }}" method="POST"
-                        onsubmit="return confirm('Are you sure you want to delete this album?')" class="inline">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit"
-                            class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all duration-300 shadow-sm text-[11px]">
-                            <i class="fa-solid fa-trash-can text-[10px]"></i>
-                            Delete
-                        </button>
-                    </form>
-                </div>
-            </td>
-        </tr>
-    @endforeach
-</tbody>
+                                                <form action="{{ route('admin.album.destroy', $data->id) }}" method="POST"
+                                                    onsubmit="return confirm('Are you sure you want to delete this album?')"
+                                                    class="inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit"
+                                                        class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all duration-300 shadow-sm text-[11px]">
+                                                        <i class="fa-solid fa-trash-can text-[10px]"></i>
+                                                        Delete
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
                         </table>
                     </div>
 

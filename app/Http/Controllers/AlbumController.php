@@ -29,7 +29,11 @@ class AlbumController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->credits < 100) {
+        /* LOGIC ADDED: 
+           Pehle check karenge ki user ka plan 'Studio' (Unlimited) hai ya nahi.
+           Agar Unlimited nahi hai, tabhi 100 credits check karenge.
+        */
+        if (!$user->is_unlimited && $user->credits < 100) {
             return redirect()->back()->with('error', 'Please add credit to your account to create your album.');
         }
 
@@ -41,9 +45,9 @@ class AlbumController extends Controller
             'album_name' => 'required|string|max:255',
             'album_type' => 'required|string|max:255', 
             'unique_code' => 'required|unique:albums,unique_code',
-            'cover_photo' => 'required|image|max:40000',
-            'album_song' => 'nullable|mimes:mp3,wav|max:20000',
-            'album_photos.*' => 'image|max:40000',
+            'cover_photo' => 'required|image|max:50000',
+            'album_song' => 'nullable|mimes:mp3,wav|max:50000',
+            'album_photos.*' => 'image|max:50000',
         ]);
 
         DB::beginTransaction();
@@ -71,7 +75,6 @@ class AlbumController extends Controller
                 $file->storeAs('songs', $songName, 'public');
             }
 
-            // 🟢 Direct manual input used
             $album = Album::create([
                 'studio_id' => $studio->id,
                 'album_name' => $request->album_name,
@@ -96,23 +99,33 @@ class AlbumController extends Controller
                 'status' => 'active',
             ]);
 
-            // 🟢 Credit deduction and logging
-            $user->decrement('credits', 100);
+            /* LOGIC ADDED: 
+               Deduction sirf tab hoga jab user 'Unlimited' plan par NA HO.
+            */
+            if (!$user->is_unlimited) {
+                // Credit deduction
+                $user->decrement('credits', 100);
 
-            credit::create([
-                'user_id' => $user->id,
-                'order_id' => 'ALBUM_'.strtoupper(Str::random(10)),
-                'purchase_date' => now(),
-                'album_name' => $request->album_name,
-                'credits' => 100,
-                'amount' => 0,
-                'payment_type' => 'Debit',
-                'status' => 'Success',
-                'message' => '100 credits deducted for album creation'
-            ]);
+                // Credit Log Entry
+                credit::create([
+                    'user_id' => $user->id,
+                    'order_id' => 'ALBUM_'.strtoupper(Str::random(10)),
+                    'purchase_date' => now(),
+                    'album_name' => $request->album_name,
+                    'credits' => 100,
+                    'amount' => 0,
+                    'payment_type' => 'Debit',
+                    'status' => 'Success',
+                    'message' => '100 credits deducted for album creation'
+                ]);
+                $msg = 'Album Created and 100 Credits deducted!';
+            } else {
+                // Unlimited user ke liye sirf success message, deduction nahi
+                $msg = 'Album Created successfully under Unlimited Plan!';
+            }
 
             DB::commit();
-            return redirect()->route('admin.index')->with('success', 'Album Created and 100 Credits deducted!');
+            return redirect()->route('admin.index')->with('success', $msg);
         } catch (\Exception $e) {
             DB::rollback();
             return back()->withInput()->withErrors($e->getMessage());
@@ -167,42 +180,35 @@ class AlbumController extends Controller
     }
 
 
-public function destroy($id)
-{
-    // 1. Studio fetch karo aur uske saath album & gallery dhoondho
-    $studio = Studio::with(['album', 'gallery'])->findOrFail($id);
-    $album = $studio->album;
-    $gallery = $studio->gallery;
+    public function destroy($id)
+    {
+        $studio = Studio::with(['album', 'gallery'])->findOrFail($id);
+        $album = $studio->album;
+        $gallery = $studio->gallery;
 
-    // 🟢 MESSAGE KE LIYE NAAM PEHLE HI SAVE KAR LO
-    $deletedAlbumName = $album ? $album->album_name : 'Album';
+        $deletedAlbumName = $album ? $album->album_name : 'Album';
 
-    // 2. Cover Photo delete karo (Folder se)
-    if ($album && $album->cover_photo) {
-        Storage::disk('public')->delete('album_covers/' . $album->cover_photo);
-    }
+        if ($album && $album->cover_photo) {
+            Storage::disk('public')->delete('album_covers/' . $album->cover_photo);
+        }
 
-    // 3. Album Song delete karo (Folder se)
-    if ($album && $album->album_song) {
-        Storage::disk('public')->delete('songs/' . $album->album_song);
-    }
+        if ($album && $album->album_song) {
+            Storage::disk('public')->delete('songs/' . $album->album_song);
+        }
 
-    // 4. Gallery ki saari Photos delete karo (Folder se)
-    if ($gallery && $gallery->images) {
-        $images = is_array($gallery->images) ? $gallery->images : json_decode($gallery->images);
-        if ($images) {
-            foreach ($images as $img) {
-                Storage::disk('public')->delete('galleries/' . $img);
+        if ($gallery && $gallery->images) {
+            $images = is_array($gallery->images) ? $gallery->images : json_decode($gallery->images);
+            if ($images) {
+                foreach ($images as $img) {
+                    Storage::disk('public')->delete('galleries/' . $img);
+                }
             }
         }
+
+        $studio->delete(); 
+
+        return back()->with('success', $deletedAlbumName . ' deleted successfully');
     }
-
-    // 5. Database se record delete karo
-    $studio->delete(); 
-
-    // 🟢 Dynamic message return karo
-    return back()->with('success', $deletedAlbumName . ' deleted successfully');
-}
 
     public function edit($id)
     {

@@ -186,14 +186,20 @@
                                 <span>Basic support</span>
                             </li>
                         </ul>
-                        <form action="{{ route('razorpay.payment') }}" method="POST">
-                            @csrf
-                            <input type="hidden" name="amount" value="999">
-                            <input type="hidden" name="plan_name" value="Basic Plan">
-                            <button type="submit"
-                                class="w-full mt-auto bg-[#3498db]/80 text-white py-3 rounded-full text-[11px] font-black uppercase hover:bg-[#3498db] shadow-md transition">Buy
-                                Now</button>
-                        </form>
+                        @if(auth()->user()->active_plan == 'Studio' && auth()->user()->plan_expires_at && now()->lt(auth()->user()->plan_expires_at))
+                            <button
+                                class="w-full mt-auto bg-gray-200 text-gray-400 py-3 rounded-full text-[11px] font-black uppercase cursor-not-allowed"
+                                disabled>Studio Active</button>
+                        @else
+                            <form action="{{ route('razorpay.payment') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="amount" value="999">
+                                <input type="hidden" name="plan_name" value="Basic Plan">
+                                <button type="submit"
+                                    class="w-full mt-auto bg-[#3498db]/80 text-white py-3 rounded-full text-[11px] font-black uppercase hover:bg-[#3498db] shadow-md transition">Buy
+                                    Now</button>
+                            </form>
+                        @endif
                     </div>
 
                     <div
@@ -265,14 +271,20 @@
                                 <span class="text-blue-500 font-bold text-[9px]">PRIORITY SUPPORT</span>
                             </li>
                         </ul>
-                        <form action="{{ route('razorpay.payment') }}" method="POST">
-                            @csrf
-                            <input type="hidden" name="amount" value="2499">
-                            <input type="hidden" name="plan_name" value="Pro Plan">
-                            <button type="submit"
-                                class="w-full mt-auto bg-blue-500 text-white py-3 rounded-full text-[11px] font-black uppercase hover:bg-blue-600 shadow-lg shadow-blue-100 transition">Buy
-                                Now</button>
-                        </form>
+                        @if(auth()->user()->active_plan == 'Studio' && auth()->user()->plan_expires_at && now()->lt(auth()->user()->plan_expires_at))
+                            <button
+                                class="w-full mt-auto bg-gray-200 text-gray-400 py-3 rounded-full text-[11px] font-black uppercase cursor-not-allowed"
+                                disabled>Studio Active</button>
+                        @else
+                            <form action="{{ route('razorpay.payment') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="amount" value="2499">
+                                <input type="hidden" name="plan_name" value="Pro Plan">
+                                <button type="submit"
+                                    class="w-full mt-auto bg-blue-500 text-white py-3 rounded-full text-[11px] font-black uppercase hover:bg-blue-600 shadow-lg shadow-blue-100 transition">Buy
+                                    Now</button>
+                            </form>
+                        @endif
                     </div>
 
                     <div
@@ -343,14 +355,20 @@
                                 <span>Priority support</span>
                             </li>
                         </ul>
-                        <form action="{{ route('razorpay.payment') }}" method="POST">
-                            @csrf
-                            <input type="hidden" name="amount" value="4999">
-                            <input type="hidden" name="plan_name" value="Studio Plan">
-                            <button type="submit"
-                                class="w-full mt-auto bg-gray-800 text-white py-3 rounded-full text-[11px] font-black uppercase hover:bg-black shadow-md transition">Buy
-                                Now</button>
-                        </form>
+                        @if(auth()->user()->active_plan == 'Studio' && auth()->user()->plan_expires_at && now()->lt(auth()->user()->plan_expires_at))
+                            <button
+                                class="w-full mt-auto bg-gray-200 text-gray-400 py-3 rounded-full text-[11px] font-black uppercase cursor-not-allowed"
+                                disabled>Already Active</button>
+                        @else
+                            <form action="{{ route('razorpay.payment') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="amount" value="4999">
+                                <input type="hidden" name="plan_name" value="Studio Plan">
+                                <button type="submit"
+                                    class="w-full mt-auto bg-gray-800 text-white py-3 rounded-full text-[11px] font-black uppercase hover:bg-black shadow-md transition">Buy
+                                    Now</button>
+                            </form>
+                        @endif
                     </div>
 
                 </div>
