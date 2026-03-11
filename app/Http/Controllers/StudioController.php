@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Studio;
 use App\Models\Album;
-use App\Models\Credit; // 1. Naya Model Import kiya
+use App\Models\Credit; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -14,7 +14,6 @@ class StudioController extends Controller
     // Dashboard Index
     public function index()
     {
-        // Sirf login user ke studios aur unke albums/galleries load honge
         $albums = Studio::where('user_id', auth()->id())
             ->with(['album', 'gallery'])
             ->latest()
@@ -29,16 +28,16 @@ class StudioController extends Controller
         return view('admin.pages.profile', compact('user'));
     }
 
-    // 2. Pehla wala khali credit() function hata diya
-    
     public function smart()
     {
         return view('admin.pages.smartselection');
     }
+
     public function studio()
     {
         return view('admin.pages.studio');
     }
+
     public function show()
     {
         return view('admin.pages.gallery');
@@ -51,25 +50,39 @@ class StudioController extends Controller
         $request->session()->regenerateToken();
         return redirect('/');
     }
-    // Profile Update
+
+    /**
+     * 🟢 PROFILE UPDATE LOGIC (Smart Storage)
+     * Isme sirf file ka naam DB mein jayega
+     */
     public function update(Request $request)
     {
         $user = Auth::user();
+        
         $request->validate([
             'name' => 'required|string|max:255',
             'business_name' => 'required|string|max:255',
             'contact_no' => 'required|string|max:15',
-            'logo' => 'nullable|image|max:4096',
+            'logo' => 'nullable|image', // Validation remove kar di user ke request par
         ]);
 
-        $logoPath = $user->logo;
+        $logoName = $user->logo; // Purana naam
+
         if ($request->hasFile('logo')) {
+            // 1. Purani file delete karo (cleanup)
             if ($user->logo) {
-                Storage::disk('public')->delete($user->logo);
+                Storage::disk('public')->delete('logos/' . $user->logo);
             }
-            $logoPath = $request->file('logo')->store('logos', 'public');
+
+            // 2. Nayi file ka unique naam banao
+            $file = $request->file('logo');
+            $logoName = time() . '_' . $file->getClientOriginalName();
+
+            // 3. File ko local storage folder mein save karo
+            $file->storeAs('logos', $logoName, 'public');
         }
 
+        // 4. DB mein sirf 'logoName' save hoga
         $user->update([
             'name' => $request->name,
             'business_name' => $request->business_name,
@@ -78,7 +91,7 @@ class StudioController extends Controller
             'address' => $request->address,
             'city' => $request->city,
             'zip_code' => $request->zip_code,
-            'logo' => $logoPath,
+            'logo' => $logoName, 
         ]);
 
         return back()->with('status', 'Profile Updated Successfully!');
@@ -86,19 +99,14 @@ class StudioController extends Controller
 
     public function handlePricingRedirect()
     {
-        // 1. Check karo user logged in hai ya nahi
         if (auth()->check()) {
-            // Agar logged in hai, toh seedha admin ke credit page par bhej do
             return redirect()->route('admin.credit'); 
         }
-
-        // 2. Agar login nahi hai, toh login page par bhejo
         return redirect()->guest(route('login'))->with('url.intended', route('admin.credit'));
     }
 
     public function credit()
     {
-        // Logged-in user ki saari credit history latest pehle
         $creditHistory = Credit::where('user_id', Auth::id())
             ->orderBy('created_at', 'desc')
             ->get();

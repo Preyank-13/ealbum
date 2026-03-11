@@ -17,6 +17,7 @@
 
             {{-- FIXED: Added the specific ID to the route to avoid the "Missing required parameter" error --}}
             <form action="{{ route('admin.gallery.update', $gallery->studio->id) }}" method="POST" enctype="multipart/form-data" id="galleryUpdateForm">                @method('PUT') 
+                @csrf {{-- 🟢 Added CSRF to prevent 419 error --}}
 
                 <div class="flex h-screen overflow-hidden bg-[#f4f7fe]">
                     @include('admin.extra.sidebar')
@@ -65,6 +66,7 @@
                                     </div>
                                     <div class="space-y-2">
                                         <label class="text-xs font-bold text-gray-500 uppercase">Email</label>
+                                        {{-- 🟢 Validation set: email type --}}
                                         <input type="email" name="studio_email" value="{{ old('studio_email', $gallery->studio->studio_email ?? '') }}"
                                             class="w-full border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-400 outline-none border transition-all">
                                     </div>
@@ -74,7 +76,6 @@
                                             value="{{ old('studio_contact', $gallery->studio->studio_contact ?? '') }}"
                                             class="w-full border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-400 outline-none border transition-all">
                                     </div>
-                                    {{-- Studio Experience Section --}}
                                     <div class="space-y-2">
                                         <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Photography Experience</label>
                                         <div class="relative">
@@ -101,65 +102,30 @@
                                                 class="w-full border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-400 outline-none border transition-all">
                                         </div>
 
-                                        {{-- Album Unique Code Section --}}
                                         <div class="space-y-2">
                                             <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Album Unique Code</label>
                                             <div class="relative">
                                                 <input type="text" value="{{ $gallery->studio->album->unique_code ?? 'N/A' }}" readonly
                                                     class="w-full bg-gray-50 border-gray-200 rounded-xl p-3 text-sm font-mono font-bold text-indigo-600 border cursor-not-allowed"
                                                     title="This code is generated automatically and cannot be changed.">
-
-                                                {{-- Optional: Key Icon for better UI --}}
                                                 <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                                                     <i class="fa-solid fa-key text-indigo-300 text-xs"></i>
                                                 </div>
                                             </div>
                                             <p class="text-[10px] text-gray-400 italic">This unique code is used by clients to access their digital album.</p>
                                         </div>
-
-                                        <div>
-                                            <label class="text-xs font-bold text-gray-500 uppercase">Album Type</label>
-                                            @php 
-                                                $defaultTypes = ['Wedding Photography', 'Corporate Event', 'Commercial/Product', 'Maternity/Baby Shoot'];
-                                                $dbValue = $gallery->studio->album->album_type ?? '';
-                                                $oldValue = old('album_type', $dbValue);
-                                                $isCustom = !in_array($oldValue, $defaultTypes) && $oldValue != "";
-                                            @endphp
-                                            <select id="albumTypeSelect" name="album_type"
-                                                class="w-full border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-400 outline-none border transition-all mb-2">
-                                                @foreach($defaultTypes as $type)
-                                                    <option value="{{ $type }}" {{ $oldValue == $type ? 'selected' : '' }}>{{ $type }}</option>
-                                                @endforeach
-                                                <option value="Custom" {{ $isCustom ? 'selected' : '' }}>Other (Custom Type)</option>
-                                            </select>
-                                            <input type="text" id="customTypeInput" name="custom_type" 
-                                                value="{{ $isCustom ? $oldValue : old('custom_type') }}"
-                                                placeholder="Enter custom album type..."
-                                                class="{{ $isCustom ? '' : 'hidden' }} w-full border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-400 outline-none border transition-all">
-                                        </div>
                                     </div>
 
-                                    {{-- COVER PHOTO --}}
-                                    <div class="space-y-2">
-                                        <label class="text-xs font-bold text-gray-500 uppercase">Album Cover Photo</label>
-                                        <div class="relative w-full max-w-[250px] aspect-square rounded-2xl overflow-hidden border-2 border-dashed border-gray-200 bg-gray-50 group flex items-center justify-center">
-                                            <input type="file" id="coverPhotoInput" name="cover_photo" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer z-20">
-
-                                            @php $coverImg = $gallery->studio->album->cover_photo ?? null; @endphp
-                                            <img id="coverPreview" 
-                                                src="{{ $coverImg ? asset('storage/album_covers/' . $coverImg) : '' }}" 
-                                                class="{{ $coverImg ? '' : 'hidden' }} w-full h-full object-cover shadow-inner">
-
-                                            <div id="coverPlaceholder" class="{{ $coverImg ? 'hidden' : '' }} flex flex-col items-center justify-center text-gray-400 text-center p-4">
-                                                <i class="fa-solid fa-cloud-arrow-up text-3xl mb-2"></i>
-                                                <p class="text-[10px] font-bold uppercase">Click to Change Cover</p>
-                                            </div>
-
-                                            <button type="button" id="btnRemoveCover" class="absolute top-3 right-3 z-30 bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
-                                                <i class="fa-solid fa-trash-can text-sm"></i>
-                                            </button>
-                                            <input type="hidden" name="remove_cover" id="removeCoverInput" value="0">
-                                        </div>
+                                    <div>
+                                        <label class="text-xs font-bold text-gray-500 uppercase">Album Type</label>
+                                        {{-- 🟢 Options removed, manual text input added as per request --}}
+                                        <input type="text" name="album_type" 
+                                            value="{{ old('album_type', $gallery->studio->album->album_type ?? '') }}"
+                                            placeholder="Enter album type (e.g. Wedding, Event)..."
+                                            class="w-full border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-400 outline-none border transition-all">
+                                        @error('album_type')
+                                            <span class="text-red-500 text-[10px] font-bold uppercase">{{ $message }}</span>
+                                        @enderror
                                     </div>
                                 </div>
 
@@ -294,7 +260,7 @@
                         Array.from(files).forEach(file => {
                             const reader = new FileReader();
                             reader.onload = function(event) {
-                                preview.append(`<div class="aspect-square rounded-xl overflow-hidden border border-gray-200 shadow-sm"><img src="${event.target.result}" class="w-full h-full object-cover"></div>`);
+                                preview.append(`<div class="aspect-square rounded-xl overflow-hidden border border-gray-100 shadow-sm"><img src="${event.target.result}" class="w-full h-full object-cover"></div>`);
                             }
                             reader.readAsDataURL(file);
                         });

@@ -61,7 +61,7 @@ class RegisteredUserController extends Controller
             'city' => $request->city,
             'country' => $request->country ?? 'India',
             'zip_code' => $request->zip_code,
-            'logo' => $logoPath, // Database mein file path save hoga
+            'logo' => $logoPath,'nullable|image' // Database mein file path save hoga
         ]);
 
         event(new Registered($user));

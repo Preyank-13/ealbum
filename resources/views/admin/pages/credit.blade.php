@@ -35,14 +35,14 @@
                         <div class="overflow-x-auto">
                             <table class="w-full text-left text-xs whitespace-nowrap" id="creditsDataTable">
                                 <thead
-                                    class="bg-gray-50/50 text-gray-500 font-bold uppercase tracking-widest border-y border-gray-100">
+                                    class="bg-gray-50/50 text-gray-500 font-bold uppercase tracking-widest border-y border-gray-100 text-center">
                                     <tr id="tableHeaderRow">
-                                        <th class="px-4 py-4">#</th>
+                                        <th class="px-4 py-4">ID</th>
                                         <th class="px-4 py-4">Order Id</th>
                                         <th class="px-4 py-4">Credit Purchase Date</th>
-                                        <th class="px-4 py-4">Album Name</th>
-                                        <th class="px-4 py-4">Number Of Credits</th>
-                                        <th class="px-4 py-4">Amount</th>
+                                        <th class="px-4 py-4">Your Plan</th>
+                                        <th class="px-4 py-4">Added Credits</th>
+                                        <th class="px-4 py-4">Purchased Amount</th>
                                         <th class="px-4 py-4">Payment Type</th>
                                         <th class="px-4 py-4">Message</th>
                                         <th class="px-4 py-4">Status</th>
@@ -50,30 +50,34 @@
                                     </tr>
                                 </thead>
                                 <tbody id="tableBodyData" class="divide-y divide-gray-100">
-                                    @forelse($creditHistory as $index => $item)
-                                        <tr>
-                                            <td class="px-4 py-4">{{ $index + 1 }}</td>
-                                            <td class="px-4 py-4">{{ $item->order_id }}</td>
-                                            <td class="px-4 py-4">
-                                                {{ \Carbon\Carbon::parse($item->purchase_date)->format('d-M-Y') }}</td>
-                                            <td class="px-4 py-4">{{ $item->album_name }}</td>
-                                            <td class="px-4 py-4 font-bold text-blue-600">{{ $item->credits }}</td>
-                                            <td class="px-4 py-4">₹{{ number_class($item->amount) }}</td>
-                                            <td class="px-4 py-4">{{ $item->payment_type }}</td>
-                                            <td class="px-4 py-4 text-gray-400 italic">{{ $item->message }}</td>
+                                    @forelse($creditHistory as $history)
+                                        <tr class="hover:bg-gray-50/50 transition-all">
+                                            <td class="px-4 py-4 text-gray-600">{{ $loop->iteration }}</td>
+                                            <td class="px-4 py-4 font-medium text-gray-800 text-center">{{ $history->order_id }}</td>
+                                            <td class="px-4 py-4 text-gray-600 text-center">
+                                                {{ \Carbon\Carbon::parse($history->purchase_date)->format('d-M-Y') }}
+                                            </td>
+                                            <td class="px-4 py-4 text-gray-600 text-center">{{ $history->album_name ?? 'N/A' }}</td>
+                                            <td class="px-4 py-4 font-bold text-blue-600 text-center">{{ $history->credits }}</td>
+                                            <td class="px-4 py-4 font-semibold text-gray-800 text-center">
+                                                ₹{{ number_format($history->amount, 2) }}</td>
+                                            <td class="px-4 py-4 text-gray-600 text-center">{{ $history->payment_type }}</td>
+                                            <td class="px-4 py-4 text-gray-400 text-xs text-center">{{ $history->message }}</td>
                                             <td class="px-4 py-4">
                                                 <span
-                                                    class="px-2 py-1 rounded-full text-[10px] {{ $item->status == 'Success' ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600' }}">
-                                                    {{ $item->status }}
+                                                    class="px-2 py-1 rounded-full text-[10px] font-bold uppercase text-center
+                                                {{ $history->status == 'Success' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600' }}">
+                                                    {{ $history->status }}
                                                 </span>
                                             </td>
-                                            <td class="px-4 py-4">{{ $item->created_at->diffForHumans() }}</td>
+                                            <td class="px-4 py-4 text-gray-500 text-[10px] text-center">
+                                                {{ $history->created_at->diffForHumans() }}
+                                            </td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="10" class="text-center py-16 text-gray-400 font-medium italic">
-                                                No credit history found.
-                                            </td>
+                                            <td colspan="10" class="text-center py-10 text-gray-400">No transaction history
+                                                found.</td>
                                         </tr>
                                     @endforelse
                                 </tbody>
@@ -82,7 +86,7 @@
 
                         <div class="pt-4 flex flex-col space-y-4">
                             <div class="flex justify-between items-center text-xs text-gray-400">
-                                <p>Showing 0 to 0 of 0 entries</p>
+                                <p>Showing 1 to 1 of 1 entries</p>
                                 <div class="flex gap-4 font-semibold uppercase tracking-tighter">
                                     <button class="hover:text-gray-600">Previous</button>
                                     <button class="px-3 py-1 bg-gray-100 rounded">1</button>

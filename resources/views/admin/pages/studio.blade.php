@@ -9,7 +9,8 @@
 
             <div class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
 
-                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 flex flex-wrap items-center justify-between gap-4">
+                <div
+                    class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 flex flex-wrap items-center justify-between gap-4">
                     <div class="flex items-center gap-4">
                         <a href="{{ route('admin.index') }}"
                             class="bg-purple-500 text-white px-5 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-purple-600 transition active:scale-95">
@@ -81,7 +82,8 @@
                             </div>
                             <div class="space-y-2">
                                 <label class="text-xs font-bold text-gray-500 uppercase">Photography Experience</label>
-                                <input type="text" name="experience" placeholder="e.g. 4 year, 5 month Exp." value="{{ old('experience') }}"
+                                <input type="text" name="experience" placeholder="e.g. 4 year, 5 month Exp."
+                                    value="{{ old('experience') }}"
                                     class="w-full border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-400 outline-none border transition-all">
                             </div>
                         </div>
@@ -92,7 +94,8 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="space-y-2">
                                 <label class="text-xs font-bold text-gray-500 uppercase">Your Album Name</label>
-                                <input type="text" name="album_name" placeholder="Enter Album Name" required value="{{ old('album_name') }}"
+                                <input type="text" name="album_name" placeholder="Enter Album Name" required
+                                    value="{{ old('album_name') }}"
                                     class="w-full border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-400 outline-none border transition-all">
                             </div>
 
@@ -125,22 +128,41 @@
 
                             <div class="space-y-2">
                                 <label class="text-xs font-bold text-gray-500 uppercase">Album Cover Photo (Single)</label>
-                                <div
-                                    class="flex-1 relative border-2 border-dashed border-gray-200 rounded-xl p-2 bg-gray-50 group">
-                                    <input type="file" id="coverPhoto" name="cover_photo" accept="image/*" required
-                                        class="absolute inset-0 opacity-0 cursor-pointer z-20">
-                                    <div id="coverPlaceholder"
-                                        class="flex items-center justify-center p-1 text-gray-400 text-xs gap-2">
-                                        <i class="fa-solid fa-image"></i> Click to upload cover
+
+                                {{-- 🟢 Container width limit kar di hai taaki bahut bada na dikhe --}}
+                                <div class="max-w-[200px]">
+
+                                    {{-- 🟢 h-auto lagaya hai taaki photo ke hisab se height badhe --}}
+                                    <div
+                                        class="relative w-full h-auto min-h-[100px] border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50 group hover:border-indigo-400 transition-all overflow-hidden">
+
+                                        {{-- Input file as it is... --}}
+                                        <input type="file" id="coverPhoto" name="cover_photo" accept="image/*" required
+                                            class="absolute inset-0 opacity-0 cursor-pointer z-20">
+
+                                        {{-- Placeholder --}}
+                                        <div id="coverPlaceholder"
+                                            class="flex flex-col items-center justify-center p-6 text-gray-400 text-xs gap-2 text-center">
+                                            <i class="fa-solid fa-cloud-arrow-up text-2xl text-gray-300"></i>
+                                            <span class="font-medium">Upload Cover</span>
+                                        </div>
+
+                                        {{-- 🟢 Preview Container: Iski height image content decide karega --}}
+                                        <div id="coverPreviewContainer" class="hidden relative w-full z-30 bg-white">
+
+                                            {{-- 🟢 block aur w-full h-auto se ye photo ke original ratio mein khulega --}}
+                                            <img src="" id="coverImg" class="block w-full h-auto object-contain">
+
+                                            {{-- Delete button --}}
+                                            <button type="button" id="removeCover"
+                                                class="absolute top-2 right-2 bg-red-500 text-white w-7 h-7 rounded-full flex items-center justify-center hover:bg-red-600 transition shadow-md">
+                                                <i class="fa-solid fa-xmark text-sm"></i>
+                                            </button>
+                                        </div>
+
                                     </div>
-                                    <div id="coverPreviewContainer"
-                                        class="hidden relative h-10 w-full rounded-lg overflow-hidden z-30">
-                                        <img src="" id="coverImg" class="w-full h-full object-cover">
-                                        <button type="button" id="removeCover"
-                                            class="absolute inset-y-0 right-0 bg-red-500 text-white px-3 hover:bg-red-600 transition">
-                                            <i class="fa-solid fa-trash-can"></i>
-                                        </button>
-                                    </div>
+                                    <p class="text-[10px] text-gray-400 mt-1 italic">* Height will adjust based on your
+                                        photo.</p>
                                 </div>
                             </div>
                         </div>
@@ -222,7 +244,7 @@
                     $(this).addClass('hidden');
                     $('#customTypeInput').removeClass('hidden').focus();
                     // Update value on input
-                    $('#customTypeInput').on('input', function(){
+                    $('#customTypeInput').on('input', function () {
                         $('#albumTypeSelect').val($(this).val());
                     });
                 }
@@ -270,9 +292,9 @@
                         const reader = new FileReader();
                         reader.onload = function (e) {
                             $('#imageGridPreview').append(`
-                                <div class="relative group aspect-square overflow-hidden rounded-2xl border border-gray-100 shadow-sm animate-fade-in-up">
-                                    <img src="${e.target.result}" class="w-full h-full object-cover">
-                                </div>`);
+                                    <div class="relative group aspect-square overflow-hidden rounded-2xl border border-gray-100 shadow-sm animate-fade-in-up">
+                                        <img src="${e.target.result}" class="w-full h-full object-cover">
+                                    </div>`);
                         }
                         reader.readAsDataURL(file);
                     } else {
@@ -286,7 +308,7 @@
             $('#songInput').change(function () {
                 const file = this.files[0];
                 if (file) {
-                    if(file.size > 10 * 1024 * 1024) {
+                    if (file.size > 10 * 1024 * 1024) {
                         alert("Song size 10MB se kam honi chahiye!");
                         $(this).val('');
                         return;
@@ -297,13 +319,13 @@
                 }
             });
 
-            $('#mainSubmitBtn').click(function () { 
+            $('#mainSubmitBtn').click(function () {
                 // Final validation check before submit
-                if(!$('#coverPhoto').val()){
+                if (!$('#coverPhoto').val()) {
                     alert("Please upload a cover photo!");
                     return;
                 }
-                $('#albumForm').submit(); 
+                $('#albumForm').submit();
             });
         });
     </script>
@@ -318,6 +340,7 @@
                 opacity: 0;
                 transform: translateY(10px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);

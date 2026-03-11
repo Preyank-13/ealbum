@@ -22,6 +22,7 @@
                         </div>
                     @endif
 
+                    {{-- 🟢 Form setup as it is --}}
                     <form action="{{ route('admin.profile.update') }}" method="POST" enctype="multipart/form-data" class="p-8 space-y-6">
                         @csrf
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -38,12 +39,13 @@
 
                             <div class="space-y-2">
                                 <label class="text-sm font-semibold text-gray-600">Email Id (User Id)</label>
-                                <input type="email" value="{{ $user->email }}" class="w-full border-gray-100 rounded-xl p-3 text-sm bg-gray-50 text-gray-400 border outline-none cursor-not-allowed" readonly>
+                                {{-- 🟢 Added required and standard email type validation --}}
+                                <input type="email" value="{{ $user->email }}" class="w-full border-gray-100 rounded-xl p-3 text-sm bg-gray-50 text-gray-400 border outline-none cursor-not-allowed" readonly required>
                             </div>
 
                             <div class="space-y-2">
                                 <label class="text-sm font-semibold text-gray-600">Password</label>
-                                <input type="password" name="password" value="{{ old('password',$user->password) }}" placeholder="Leave blank to keep current" class="w-full border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-400 outline-none border transition-all">
+                                <input type="password" name="password" value="{{ old('password') }}" placeholder="Leave blank to keep current" class="w-full border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-400 outline-none border transition-all">
                             </div>
 
                             <div class="space-y-2">
@@ -74,7 +76,7 @@
                                     <option value="India" {{ $user->country == 'India' ? 'selected' : '' }}>India</option>
                                     <option value="USA" {{ $user->country == 'USA' ? 'selected' : '' }}>USA</option>
                                     <option value="Canada" {{ $user->country == 'Canada' ? 'selected' : '' }}>Canada</option>
-                                    </select>
+                                </select>
                             </div>
 
                             <div class="space-y-2">
@@ -83,10 +85,12 @@
                             </div>
 
                             <div class="space-y-2">
-                                <label class="text-sm font-semibold text-gray-600">Logo (200px x 200px) select: <= 2 MB Photo</label>
+                                {{-- 🟢 Removed 2MB text from label --}}
+                                <label class="text-sm font-semibold text-gray-600">Business Logo (High Quality Allowed)</label>
                                 <div class="flex flex-col gap-4">
                                     <div class="flex items-center gap-2 border border-gray-200 rounded-xl p-2 bg-gray-50">
-                                        <input type="file" id="logoInput" name="logo" class="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-gray-200 file:text-gray-700 hover:file:bg-gray-300">
+                                        {{-- 🟢 accept="image/*" ensures only photos are picked --}}
+                                        <input type="file" id="logoInput" name="logo" accept="image/*" class="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-gray-200 file:text-gray-700 hover:file:bg-gray-300">
                                     </div>
                                     <div id="logoPreviewBox" class="w-32 h-32 bg-gray-100 border border-dashed border-gray-300 rounded-xl flex items-center justify-center overflow-hidden">
                                         @if($user->logo)
@@ -124,7 +128,7 @@
                 var reader = new FileReader();
                 reader.onload = function(e) {
                     $('#logoPreviewBox .placeholder').addClass('hidden');
-                    $('#logoPreviewBox img').attr('src', e.target.result).removeClass('hidden');
+                    $('#logoPreviewBox img').attr('src', e.target.result).removeClass('hidden').addClass('w-full h-full object-cover');
                 }
                 reader.readAsDataURL(this.files[0]);
             }

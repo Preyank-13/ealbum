@@ -5,65 +5,94 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Razorpay\Api\Api;
 use Exception;
-use App\Models\CreditHistory; // CreditHistory Model use karne ke liye
+use App\Models\credit;
 use Illuminate\Support\Facades\Auth;
 
 class RazorpayController extends Controller
 {
+    // Payment Page dikhane ke liye
     public function index()
     {
         return view('admin.pages.razorpay');
     }
 
+    // Razorpay Order generate karne ke liye
     public function payment(Request $request)
     {
-        // 1. Request se data nikalna
-        $amount = $request->input('amount');
-        $plan_name = $request->input('plan_name');
-        $user = Auth::user();
+        // 🟢 Tip: Production mein API keys ko .env file se load karein
+        $api = new Api('rzp_test_SPSlUSEJS6hnwx', 'ZfbuH0IAu4MJWy7C4Rtj1m2o');
+
+        // Amount ko paise mein convert karna (1 INR = 100 Paise)
+        $amountInPaise = $request->amount * 100;
 
         try {
-            // 2. Credits table mein entry save karna
-            Credit::create([
-                'user_id'       => $user->id,
-                'order_id'      => 'TEST_ORD_' . rand(1000, 9999),
-                'purchase_date' => now(),
-                'album_name'    => $plan_name,
-                'credits'       => $amount, // 1 Rs = 1 Credit logic
-                'amount'        => $amount,
-                'payment_type'  => 'Dummy/Test',
-                'message'       => 'Credit added successfully via Test Mode',
-                'status'        => 'Success',
+            $order = $api->order->create([
+                'receipt' => 'rcpt_' . rand(1000, 9999),
+                'amount' => $amountInPaise,
+                'currency' => 'INR',
             ]);
 
-            // 3. User table mein total credits update karna
-            // Pakka karein ki User model ke $fillable mein 'credits' hai
-            $user->update([
-                'credits' => $user->credits + $amount
+            return view('admin.pages.payment', [
+                'orderId' => $order['id'],
+                'amount' => $amountInPaise,
+                'plan_name' => $request->plan_name ?? 'Credit Purchase'
             ]);
-
-            return redirect()->route('admin.credit')->with('success', 'Payment successful! Credits added to your account.');
 
         } catch (Exception $e) {
-            return "Error while processing payment: " . $e->getMessage();
+            return "Order Error: " . $e->getMessage();
         }
     }
 
-
+    // Payment success hone ke baad verification aur DB entry
     public function callback(Request $request)
     {
-        // Ye tab kaam aayega jab asli Razorpay chalega
-        $api = new Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
+        $api = new Api('rzp_test_SPSlUSEJS6hnwx', 'ZfbuH0IAu4MJWy7C4Rtj1m2o');
+
         try {
             $attr = [
                 'razorpay_order_id' => $request->orderid,
                 'razorpay_payment_id' => $request->payid,
                 'razorpay_signature' => $request->sign
             ];
+
+            // Signature verify karna zaroori hai
             $api->utility->verifyPaymentSignature($attr);
-            echo "Payment Verified Successfully!";
+
+            $user = Auth::user();
+            $amountInRupees = $request->amount / 100;
+
+            // Database mein entry tabhi hogi jab signature sahi ho
+            credit::create([
+                'user_id' => $user->id,
+                'order_id' => $request->orderid,
+                'purchase_date' => now(),
+                'album_name' => $request->plan_name ?? 'Credit Purchase',
+                'credits' => $amountInRupees,
+                'amount' => $amountInRupees,
+                'payment_type' => 'Razorpay Online',
+                'status' => 'Success',
+                // 🟢 FIXED: Dynamic message yahan add kiya hai taaki History mein dikhe
+                'message' => $amountInRupees . ' credits added successfully',
+            ]);
+
+            // User ka balance increment karein
+            $user->increment('credits', $amountInRupees);
+
+            return redirect()->route('admin.credit')->with('success', 'Payment Successful!');
+
         } catch (Exception $e) {
-            echo "Payment Verification Failed!: " . $e->getMessage();
+            return "Verification Failed: " . $e->getMessage();
         }
+    }
+
+    // Fetch Credit History
+    public function credit()
+    {
+        // Sirf logged-in user ki history fetch karein aur latest upar dikhayein
+        $creditHistory = \App\Models\credit::where('user_id', auth()->id())
+            ->latest()
+            ->get();
+
+        return view('admin.pages.credit', compact('creditHistory'));
     }
 }

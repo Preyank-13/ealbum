@@ -11,14 +11,32 @@
 
             <div class="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
 
+                {{-- 🟢 Alert Messages for Credit Errors or Success --}}
+                @if(session('error'))
+                    <div
+                        class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mb-4 shadow-sm animate-pulse">
+                        <span class="block sm:inline font-bold"><i
+                                class="fa-solid fa-circle-exclamation mr-2"></i>{{ session('error') }}</span>
+                    </div>
+                @endif
+
+                @if(session('success'))
+                    <div
+                        class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-xl relative mb-4 shadow-sm">
+                        <span class="block sm:inline font-bold"><i
+                                class="fa-solid fa-circle-check mr-2"></i>{{ session('success') }}</span>
+                    </div>
+                @endif
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div
                         class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center group hover:shadow-md transition-all">
                         <div class="text-red-500 mb-2"><i
                                 class="fa-solid fa-file-video text-4xl group-hover:scale-110 transition-transform"></i>
                         </div>
-                        <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Total Creation</p>
-                        <h2 class="text-3xl font-black text-gray-800">0</h2>
+                        <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest">Total Album Created</p>
+                        {{-- 🟢 Dynamic Album Count --}}
+                        <h2 class="text-3xl font-black text-gray-800">{{ $albums->count() }}</h2>
                     </div>
 
                     <div
@@ -26,9 +44,10 @@
                         <div class="text-yellow-500 mb-2"><i
                                 class="fa-solid fa-money-bill-1 text-4xl group-hover:scale-110 transition-transform"></i>
                         </div>
-                        <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest">eAlbum Credits</p>
+                        <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest">eAlbum Credits Available</p>
                         <h2 class="text-3xl font-black text-gray-800">{{ Auth::user()->credits }}</h2>
-                        <a href="{{ route('admin.pages.razorpay')}}" class="text-blue-600 font-bold text-xs mt-1 hover:underline">Buy Credits</a>
+                        <a href="{{ route('admin.razorpay.index')}}"
+                            class="text-blue-600 font-bold text-xs mt-1 hover:underline">Buy Credits</a>
                     </div>
 
                     <div
@@ -37,7 +56,8 @@
                                 class="fa-solid fa-crown text-4xl group-hover:scale-110 transition-transform"></i></div>
                         <p class="text-gray-400 text-[10px] leading-tight font-bold uppercase tracking-tighter">No Active
                             Subscription</p>
-                        <a href="{{ route('admin.pages.razorpay') }}" class="text-blue-600 font-bold text-xs mt-1 hover:underline">Get Subscription</a>
+                        <a href="{{ route('admin.razorpay.index') }}"
+                            class="text-blue-600 font-bold text-xs mt-1 hover:underline">Get Subscription</a>
                     </div>
 
                     <div
@@ -55,13 +75,6 @@
                         <a href="{{ route('admin.studio') }}"
                             class="bg-blue-600 text-white px-6 py-3 rounded-xl text-sm font-bold whitespace-nowrap shadow-md hover:bg-blue-700 transition">Create
                             EAlbum</a>
-                    </div>
-                    <div class="flex gap-2">
-                        <input type="text" placeholder="Enter Project/Event Code"
-                            class="flex-1 border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-400 outline-none border shadow-sm">
-                        <button
-                            class="bg-blue-600 text-white px-6 py-3 rounded-xl text-sm font-bold whitespace-nowrap shadow-md hover:bg-blue-700 transition">Import
-                            Project</button>
                     </div>
                 </div>
 
@@ -84,67 +97,64 @@
                                     <th class="px-4 py-4">Unique Code</th>
                                     <th class="px-4 py-4">Album Type</th>
                                     <th class="px-4 py-4">Title</th>
-                                    <th class="px-4 py-4">Person Name</th>
+                                    <th class="px-4 py-4">Contact Person Name</th>
                                     <th class="px-4 py-4">Photography Exp.</th>
                                     <th class="px-4 py-4">Contact No</th>
                                     <th class="px-4 py-4">Created On</th>
-                                    <th class="px-4 py-4">End Date</th>
+                                    <th class="px-4 py-4">End Validity Date</th>
                                     <th class="px-4 py-4 text-center">Action</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-100 text-[13px]">
-                                @foreach ($albums as $data)
-                                    <tr class="hover:bg-indigo-50/30 transition-all group whitespace-nowrap">
-                                        <td class="px-4 py-5 font-bold text-blue-600">{{ $loop->iteration }}</td>
-                                        <td class="px-4 py-5">{{ $data->album->unique_code }}</td>
-                                        <td class="px-4 py-5"><span
-                                                class="bg-blue-100 text-blue-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase">{{ $data->album->album_type ?? 'N/A' }}</span>
-                                        </td>
-                                        <td class="px-4 py-5 font-bold text-gray-700">{{ $data->album->album_name }}</td>
-                                        <td class="px-4 py-5">{{ $data->contact_person }}</td>
-                                        <td class="px-4 py-5">{{ $data->experience }}</td>
-                                        <td class="px-4 py-5">{{ $data->studio_contact }}</td>
-                                        <td class="px-4 py-5">{{ $data->created_at->format('d M, Y') }}</td>
-                                        <td class="px-4 py-5 text-gray-400">--</td>
-                                        <td class="px-4 py-5 text-center">
-                                            <div class="flex items-center justify-center gap-4 text-xs font-semibold">
+                            <tbody class="divide-y divide-gray-100 text-[12px]">
+    @foreach ($albums as $data)
+        <tr class="hover:bg-indigo-50/30 transition-all group">
+            <td class="px-2 py-4 font-bold text-blue-600 text-center">{{ $loop->iteration }}</td>
+            <td class="px-2 py-4 font-medium">{{ $data->album->unique_code }}</td>
+            <td class="px-2 py-4">
+                <span class="bg-blue-100 text-blue-600 px-2 py-0.5 rounded text-[9px] font-bold uppercase block w-max">
+                    {{ $data->album->album_type ?? 'N/A' }}
+                </span>
+            </td>
+            <td class="px-2 py-4 font-bold text-gray-700 max-w-[150px] whitespace-normal leading-tight">
+                {{ $data->album->album_name }}
+            </td>
+            <td class="px-2 py-4 whitespace-nowrap">{{ $data->contact_person }}</td>
+            <td class="px-2 py-4 whitespace-nowrap">{{ $data->experience }}</td>
+            <td class="px-2 py-4">{{ $data->studio_contact }}</td>
+            <td class="px-2 py-4 whitespace-nowrap">{{ $data->created_at->format('d M, Y') }}</td>
+            <td class="px-2 py-4 text-gray-400">--</td>
+            <td class="px-2 py-4">
+                <div class="flex items-center justify-start gap-2 flex-nowrap">
+                    <button type="button"
+                        class="px-3 py-1.5 rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white transition-all duration-300 shadow-sm text-[11px] whitespace-nowrap btn-extend-validity">
+                        Extend Validity
+                    </button>
 
-                                                {{-- Extend Validity --}}
-                                                <button type="button"
-                                                    class="px-4 py-2 rounded-lg bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white transition-all duration-300 shadow-sm">
-                                                    Extend Validity
-                                                </button>
+                    <a href="{{ route('admin.gallery.update', $data->id) }}"
+                        class="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-300 shadow-sm text-[11px]">
+                        Edit
+                    </a>
 
-                                                {{-- Edit --}}
-                                                <a href="{{ route('admin.gallery.update', $data->id) }}"
-                                                    class="px-4 py-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all duration-300 shadow-sm">
-                                                    Edit
-                                                </a>
-
-                                                {{-- Delete --}}
-                                                <form action="{{ route('admin.album.destroy', $data->id) }}" method="POST"
-                                                    onsubmit="return confirm('Are you sure you want to delete this album?')">
-
-                                                    @csrf
-                                                    @method('DELETE')
-
-                                                    <button type="submit"
-                                                        class="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all duration-300 shadow-sm">
-                                                        <i class="fa-solid fa-trash-can text-xs"></i>
-                                                        Delete
-                                                    </button>
-                                                </form>
-
-                                            </div>
-                                        </td>
-                                @endforeach
-                                </tr>
-                            </tbody>
+                    <form action="{{ route('admin.album.destroy', $data->id) }}" method="POST"
+                        onsubmit="return confirm('Are you sure you want to delete this album?')" class="inline">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit"
+                            class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-all duration-300 shadow-sm text-[11px]">
+                            <i class="fa-solid fa-trash-can text-[10px]"></i>
+                            Delete
+                        </button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+    @endforeach
+</tbody>
                         </table>
                     </div>
 
                     <div class="p-4 border-t border-gray-50 flex justify-between items-center text-xs text-gray-500">
-                        <div>Showing 1 to 1 of 1 entries</div>
+                        <div>Showing 1 to {{ $albums->count() }} of {{ $albums->count() }} entries</div>
                         <div class="flex gap-1">
                             <button class="px-3 py-1.5 border rounded-lg hover:bg-gray-50 transition">Previous</button>
                             <button class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg">1</button>
@@ -228,7 +238,7 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
         $(document).ready(function () {
-            // 1. Sidebar Toggle (AS IT IS)
+            // 1. Sidebar Toggle
             $(document).on('click', '#toggleSidebar', function (e) {
                 e.preventDefault();
                 $('#sidebar-container').toggleClass('collapsed-sidebar');
@@ -250,7 +260,7 @@
                 }, 300);
             });
 
-            // 4. Hover Bounce Effect (AS IT IS)
+            // 4. Hover Bounce Effect
             $('.bg-white').hover(
                 function () { $(this).find('i').addClass('fa-bounce'); },
                 function () { $(this).find('i').removeClass('fa-bounce'); }

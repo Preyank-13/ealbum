@@ -1,48 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Processing Payment...</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-
-<body>
-    <h1>Processing....</h1>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+    <div class="text-center">
+        <div class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent mx-auto mb-4"></div>
+        <h1 class="text-xl font-bold">Opening Razorpay Checkout...</h1>
+    </div>
 
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script>
         var options = {
-            "key": "{{ env('RAZORPAY_KEY') }}", // Enter the Key ID generated from the Dashboard
-            "amount": "{{$amount}}", // Amount is in currency subunits. 
+            "key": "rzp_test_SPSlUSEJS6hnwx", 
+            "amount": "{{ $amount }}", 
             "currency": "INR",
-            "name": "Acme Corp", //your business name
-            "description": "Test Transaction",
+            "name": "eAlbum Services", 
+            "description": "Credits for {{ $plan_name }}",
+            "order_id": "{{ $orderId }}", 
             "handler": function (response) {
-                var payid = response.razorpay_payment_id;
-                var orderid = response.razorpay_order_id;
-                var sign = response.razorpay_signature;
-
-                window.location.href = "{{ route('razorpay.callback') }}?payid=" + payid + "&orderid=" + orderid + "&sign=" + sign;
+                // Success hone par data callback route par bhejein
+                window.location.href = "{{ route('razorpay.callback') }}?payid=" + response.razorpay_payment_id + 
+                                       "&orderid=" + response.razorpay_order_id + 
+                                       "&sign=" + response.razorpay_signature +
+                                       "&amount={{ $amount }}&plan_name={{ $plan_name }}";
             },
-            "image": "https://example.com/your_logo",
-            "order_id": "{{$orderId}}", // This is a sample Order ID. Pass the `id` obtained in the response of Step 1
-            "prefill": { //We recommend using the prefill parameter to auto-fill customer's contact information especially their phone number
-                "name": "Gaurav Kumar", //your customer's name
-                "email": "gaurav.kumar@example.com",
-                "contact": "+919876543210" //Provide the customer's phone number for better conversion rates 
+            "prefill": {
+                "name": "{{ Auth::user()->name }}",
+                "email": "{{ Auth::user()->email }}"
             },
-            "notes": {
-                "address": "Razorpay Corporate Office"
-            },
-            "theme": {
-                "color": "#3399cc"
-            }
+            "theme": { "color": "#4f46e5" }
         };
         var rzp1 = new Razorpay(options);
-        rzp1.open();
-
+        window.onload = function() { rzp1.open(); };
     </script>
 </body>
-
 </html>
