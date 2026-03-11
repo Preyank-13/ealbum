@@ -57,14 +57,26 @@
 
                     <div
                         class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center group hover:shadow-md transition-all">
-                        <div class="text-yellow-500 mb-2"><i
-                                class="fa-solid fa-money-bill-1 text-4xl group-hover:scale-110 transition-transform"></i>
+                        <div class="text-yellow-500 mb-2">
+                            <i class="fa-solid {{ auth()->user()->is_unlimited ? 'fa-infinity' : 'fa-money-bill-1' }} text-4xl group-hover:scale-110 transition-transform"></i>
                         </div>
-                        <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest">eAlbum Credits Available
+
+                        <p class="text-gray-400 text-[10px] font-bold uppercase tracking-widest">
+                            {{ auth()->user()->is_unlimited ? 'Unlimited Plan Active' : 'eAlbum Credits Available' }}
                         </p>
-                        <h2 class="text-3xl font-black text-gray-800">{{ Auth::user()->credits }}</h2>
+
+                        <h2 class="text-3xl font-black text-gray-800">
+                            @if(auth()->user()->is_unlimited && auth()->user()->plan_expires_at && now()->lt(auth()->user()->plan_expires_at))
+                                <span class="text-blue-600">∞</span>
+                            @else
+                                {{ Auth::user()->credits }}
+                            @endif
+                        </h2>
+
                         <a href="{{ route('admin.razorpay.index')}}"
-                            class="text-blue-600 font-bold text-xs mt-1 hover:underline">Buy Credits</a>
+                            class="text-blue-600 font-bold text-xs mt-1 hover:underline">
+                            {{ auth()->user()->is_unlimited ? 'Plan Details' : 'Buy Credits' }}
+                        </a>
                     </div>
 
                     <div
@@ -88,7 +100,7 @@
                         @else
                             <p class="text-gray-400 text-[10px] leading-tight font-bold uppercase tracking-tighter">No Active
                                 Subscription</p>
-                            <a href="{{ route('admin.razorpay.index') }}"
+                            <a href="{{ route('admin.credit') }}"
                                 class="text-blue-600 font-bold text-xs mt-1 hover:underline">Get Subscription</a>
                         @endif
                     </div>

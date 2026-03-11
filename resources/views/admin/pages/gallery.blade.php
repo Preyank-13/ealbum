@@ -9,15 +9,15 @@
                     </div>
                 </div>
                 <h3 class="mt-6 text-xl font-black text-gray-800">Processing Your Album...</h3>
-                <p class="text-sm text-gray-500 font-medium text-center px-6">Please wait, we are optimizing and uploading your high-quality photos.</p>
+                <p class="text-sm text-gray-500 font-medium text-center px-6">Please wait, we are optimizing and uploading your high-quality photos (Up to 10MB).</p>
                 <div class="w-64 h-2 bg-gray-100 rounded-full mt-4 overflow-hidden">
                     <div class="h-full bg-indigo-600 animate-pulse" style="width: 100%"></div>
                 </div>
             </div>
 
-            {{-- FIXED: Added the specific ID to the route to avoid the "Missing required parameter" error --}}
-            <form action="{{ route('admin.gallery.update', $gallery->studio->id) }}" method="POST" enctype="multipart/form-data" id="galleryUpdateForm">                @method('PUT') 
-                @csrf {{-- 🟢 Added CSRF to prevent 419 error --}}
+            <form action="{{ route('admin.gallery.update', $gallery->studio->id) }}" method="POST" enctype="multipart/form-data" id="galleryUpdateForm">
+                @method('PUT') 
+                @csrf
 
                 <div class="flex h-screen overflow-hidden bg-[#f4f7fe]">
                     @include('admin.extra.sidebar')
@@ -27,7 +27,6 @@
 
                         <div class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
 
-                            {{-- Top Header Card --}}
                             <div class="mb-8 flex justify-between items-center bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
                                 <h2 class="text-2xl font-black text-gray-800 tracking-tight">
                                     Update Your Studio, Album & Gallery
@@ -66,34 +65,52 @@
                                     </div>
                                     <div class="space-y-2">
                                         <label class="text-xs font-bold text-gray-500 uppercase">Email</label>
-                                        {{-- 🟢 Validation set: email type --}}
                                         <input type="email" name="studio_email" value="{{ old('studio_email', $gallery->studio->studio_email ?? '') }}"
                                             class="w-full border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-400 outline-none border transition-all">
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-xs font-bold text-gray-500 uppercase">Contact No (10 Digits Only)</label>
-                                        <input type="text" id="studio_contact" name="studio_contact" maxlength="10" placeholder="9876543210"
+                                        <label class="text-xs font-bold text-gray-500 uppercase">Contact No</label>
+                                        <input type="text" id="studio_contact" name="studio_contact" maxlength="10"
                                             value="{{ old('studio_contact', $gallery->studio->studio_contact ?? '') }}"
                                             class="w-full border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-400 outline-none border transition-all">
                                     </div>
                                     <div class="space-y-2">
-                                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Photography Experience</label>
-                                        <div class="relative">
-                                            <input type="text" name="experience" value="{{ old('experience', $gallery->studio->experience ?? '') }}"
-                                                placeholder="e.g. 5 Years, 2 Months"
+                                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Experience</label>
+                                        <input type="text" name="experience" value="{{ old('experience', $gallery->studio->experience ?? '') }}"
                                                 class="w-full border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-400 outline-none border transition-all">
-                                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                                <i class="fa-solid fa-briefcase text-indigo-300 text-xs"></i>
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
 
-                                {{-- 2. Album Details --}}
+                                {{-- 2. Cover Photo Section (Small Size Integration) --}}
+                                <h4 class="font-bold text-gray-700 flex items-center gap-2 pt-4 border-t border-gray-50">
+                                    <i class="fa-solid fa-image text-blue-500"></i> Album Cover Photo (Max 10MB)
+                                </h4>
+                                {{-- 🟢 Chhota preview aur style --}}
+                                <div class="flex items-start gap-8 bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
+                                    <div class="relative group h-32 w-48 bg-gray-100 rounded-2xl overflow-hidden border border-gray-200 flex items-center justify-center shrink-0 shadow-inner">
+                                        <img id="coverPreview" src="{{ $gallery->studio->album->cover_photo ? asset('storage/album_covers/' . $gallery->studio->album->cover_photo) : '' }}" 
+                                             class="w-full h-full object-cover {{ $gallery->studio->album->cover_photo ? '' : 'hidden' }}">
+                                        <div id="coverPlaceholder" class="{{ $gallery->studio->album->cover_photo ? 'hidden' : '' }} text-center p-3">
+                                            <i class="fa-solid fa-cloud-arrow-up text-2xl text-gray-300"></i>
+                                            <p class="text-[9px] text-gray-400 font-bold uppercase mt-1">No Cover</p>
+                                        </div>
+                                        <button type="button" id="btnRemoveCover" class="absolute top-2 right-2 bg-red-500 text-white w-7 h-7 rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all text-xs">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                        <input type="hidden" name="remove_cover" id="removeCoverInput" value="0">
+                                    </div>
+                                    <div class="space-y-3 flex-1">
+                                        <label class="block text-xs font-bold text-indigo-600 uppercase">Upload New Cover</label>
+                                        <input type="file" name="cover_photo" id="coverPhotoInput" accept="image/*"
+                                               class="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-6 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 transition-all cursor-pointer">
+                                        <p class="text-[10px] text-gray-400 font-medium italic mt-2">Recommended: 1920x1080px (16:9). Images up to 10MB are optimized.</p>
+                                    </div>
+                                </div>
+
+                                {{-- 3. Album Details --}}
                                 <h4 class="font-bold text-gray-700 flex items-center gap-2 pt-4 border-t border-gray-50">
                                     <i class="fa-solid fa-images text-purple-500"></i> Album Details
                                 </h4>
-
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div class="space-y-4">
                                         <div>
@@ -101,41 +118,28 @@
                                             <input type="text" name="album_name" value="{{ old('album_name', $gallery->studio->album->album_name ?? '') }}"
                                                 class="w-full border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-400 outline-none border transition-all">
                                         </div>
-
                                         <div class="space-y-2">
                                             <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Album Unique Code</label>
-                                            <div class="relative">
-                                                <input type="text" value="{{ $gallery->studio->album->unique_code ?? 'N/A' }}" readonly
-                                                    class="w-full bg-gray-50 border-gray-200 rounded-xl p-3 text-sm font-mono font-bold text-indigo-600 border cursor-not-allowed"
-                                                    title="This code is generated automatically and cannot be changed.">
-                                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                                    <i class="fa-solid fa-key text-indigo-300 text-xs"></i>
-                                                </div>
-                                            </div>
-                                            <p class="text-[10px] text-gray-400 italic">This unique code is used by clients to access their digital album.</p>
+                                            <input type="text" value="{{ $gallery->studio->album->unique_code ?? 'N/A' }}" readonly
+                                                    class="w-full bg-gray-50 border-gray-200 rounded-xl p-3 text-sm font-mono font-bold text-indigo-600 border cursor-not-allowed">
                                         </div>
                                     </div>
-
                                     <div>
                                         <label class="text-xs font-bold text-gray-500 uppercase">Album Type</label>
-                                        {{-- 🟢 Options removed, manual text input added as per request --}}
                                         <input type="text" name="album_type" 
                                             value="{{ old('album_type', $gallery->studio->album->album_type ?? '') }}"
-                                            placeholder="Enter album type (e.g. Wedding, Event)..."
+                                            placeholder="Wedding, Event etc."
                                             class="w-full border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-400 outline-none border transition-all">
-                                        @error('album_type')
-                                            <span class="text-red-500 text-[10px] font-bold uppercase">{{ $message }}</span>
-                                        @enderror
                                     </div>
                                 </div>
 
-                                {{-- 3. Music & Bulk Upload --}}
+                                {{-- 4. Music & Bulk Upload --}}
                                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-4 border-t border-gray-50">
                                     <div class="space-y-4">
-                                        <label class="text-xs font-bold text-gray-500 uppercase">Background Music (MP3)</label>
+                                        <label class="text-xs font-bold text-gray-500 uppercase">Background Music (MP3 - Max 10MB)</label>
                                         <div class="flex items-center gap-3">
                                             <div class="flex-1 border-2 border-dashed border-gray-200 rounded-2xl p-4 bg-gray-50/50">
-                                                <input type="file" id="songInput" name="album_song" accept="audio/*"
+                                                <input type="file" id="songInput" name="album_song" accept="audio/mp3"
                                                     class="text-xs cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-indigo-600 file:text-white">
                                             </div>
                                             <button type="button" id="btnRemoveSong" class="{{ isset($gallery->studio->album->album_song) ? '' : 'hidden' }} w-12 h-12 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm">
@@ -152,7 +156,7 @@
 
                                     <div class="space-y-4">
                                         <div class="flex items-center justify-between">
-                                            <label class="text-xs font-bold text-gray-500 uppercase">Add New Gallery Photos</label>
+                                            <label class="text-xs font-bold text-gray-500 uppercase">Add Gallery Photos (Max 10MB Each)</label>
                                             <span id="imageCountLabel" class="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-3 py-1 rounded-full uppercase">0 Selected</span>
                                         </div>
                                         <div class="border-2 border-dashed border-indigo-100 rounded-3xl p-6 bg-indigo-50/10 text-center group hover:border-indigo-400 transition-all">
@@ -168,7 +172,6 @@
                                 <div id="imageGridPreview" class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-4 mt-6"></div>
                             </div>
 
-                            {{-- Current Gallery --}}
                             <h4 class="font-bold text-gray-700 flex items-center gap-2 pt-6"><i class="fa-solid fa-box-archive text-indigo-500"></i> Active Gallery</h4>
                             <div id="removedImagesContainer"></div>
 
@@ -264,14 +267,6 @@
                             }
                             reader.readAsDataURL(file);
                         });
-                    });
-
-                    $('#albumTypeSelect').on('change', function() {
-                        if ($(this).val() === 'Custom') {
-                            $('#customTypeInput').removeClass('hidden').focus();
-                        } else {
-                            $('#customTypeInput').addClass('hidden').val('');
-                        }
                     });
                 });
             </script>

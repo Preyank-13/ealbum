@@ -4,106 +4,72 @@ use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
 use Illuminate\Support\Facades\File;
 
-
 function testHelper(): string{
     return 'testing 000';
 }
 
-
-
-
-
 function deleteImages($image){
     if(isset($image)){
-        if(File::exists(public_path('web').'/media/lg/'.$image)){
-            unlink(public_path('web').'/media/lg/'.$image);
-          }
-          if(File::exists(public_path('web').'/media/md/'.$image)){
-            unlink(public_path('web').'/media/md/'.$image);
-        }
-        if(File::exists(public_path('web').'/media/sm/'.$image)){
-            unlink(public_path('web').'/media/sm/'.$image);
-        }
-        if(File::exists(public_path('web').'/media/xs/'.$image)){
-            unlink(public_path('web').'/media/xs/'.$image);
-        }
-        if(File::exists(public_path('web').'/media/icon/'.$image)){
-            unlink(public_path('web').'/media/icon/'.$image);
+        // Sabhi folders se image delete karne ka logic
+        $folders = ['lg', 'md', 'sm', 'xs', 'icon'];
+        foreach($folders as $folder) {
+            $path = public_path('web/media/' . $folder . '/' . $image);
+            if(File::exists($path)){
+                unlink($path);
+            }
         }
     }
 }
 
 function uploadImageTemp($request, $fileName = 'image', $prefix = null){
-    // dd($request->file('image'));
+    // Badi images (10MB+) ke liye memory limit badhana zaroori hai
+    ini_set('memory_limit', '512M'); 
     
-    $manager = new ImageManager(
-        new Intervention\Image\Drivers\Gd\Driver()
-    );
+    $manager = new ImageManager(new Driver());
     
     if (request()->hasFile($fileName)) {
-    // open an image file
-    $image = @$manager->read($request->file($fileName));
-    $image_name = $prefix.time().'_'.rand(111,999).'.webp';
-    
-    // Icons Convversion
+        $file = $request->file($fileName);
+        $image_name = $prefix.time().'_'.rand(111,999).'.webp';
+        
+        // Sizes aur unki widths define karein
+        $sizes = [
+            'icon' => 200,
+            'xs'   => 500,
+            'sm'   => 1000,
+            'md'   => 1500,
+            'lg'   => 3000
+        ];
 
-    $iconPath = public_path('web/media/icon');
-    $iconImage = @$manager->read($request->file($fileName));
-    $iconImage->scaleDown(width: 200);
-    $iconImage->save($iconPath.'/'.$image_name);
+        foreach ($sizes as $folder => $width) {
+            $path = public_path('web/media/' . $folder);
+            
+            if (!File::isDirectory($path)) {
+                File::makeDirectory($path, 0755, true, true);
+            }
 
-    // xs Convversion
-
-    $xsPath = public_path('web/media/xs');
-    $xsImage = @$manager->read($request->file($fileName));
-    $xsImage->scaleDown(width: 500);
-    $xsImage->save($xsPath.'/'.$image_name);
-
-    // sm Convversion
-
-    $smPath = public_path('web/media/sm');
-    $smImage = @$manager->read($request->file($fileName));
-    $smImage->scaleDown(width: 1000);
-    $smImage->save($smPath.'/'.$image_name);
-
-    // md Convversion
-
-    $mdPath = public_path('web/media/md');
-    $mdImage = @$manager->read($request->file($fileName));
-    $mdImage->scaleDown(width: 1500);
-    $mdImage->save($mdPath.'/'.$image_name);
-
-    // lg Convversion
-
-    $lgPath = public_path('web/media/lg');
-    $lgImage = @$manager->read($request->file($fileName));
-    $lgImage->scaleDown(width: 3000);
-    $lgImage->save($lgPath.'/'.$image_name);
-    
-    // lg Convversion
-    
-    // $lgPath = public_path('web/media/xl');
-    // $lgImage = @$manager->read($request->file($fileName));
-    // $lgImage->scaleDown(width: 3000);
-    // $lgImage->save($lgPath.'/'.$image_name);
-    
-    return $image_name;
+            // Image ko read karke process karein
+            $img = $manager->read($file);
+            $img->scaleDown(width: $width);
+            
+            // 🟢 10MB optimization logic: webp conversion with 75% quality
+            // Isse 10MB ki file 1MB se bhi kam ho jayegi par quality professional rahegi
+            $img->toWebp(75)->save($path.'/'.$image_name);
+        }
+        
+        return $image_name;
     }
-    else{
-        return null;
-    }
+    return null;
 }
 
-
-
 function uploadImagesThumb($request, $fileName = null, $prefix = null) {
-    // dd($request);
+    // Memory limit for heavy processing
+    ini_set('memory_limit', '512M');
+    
     $manager = new ImageManager(new Driver());
     
     if ($request !== null) {
         $image_name = $prefix . time() . '_' . rand(111, 999) . '.webp';
         
-        // Define sizes and their respective widths
         $sizes = [
             'icon' => 200,
             'xs'   => 500,
@@ -113,18 +79,17 @@ function uploadImagesThumb($request, $fileName = null, $prefix = null) {
         ];
 
         foreach ($sizes as $folder => $width) {
-            // Path define karein
             $path = public_path('web/media/' . $folder);
 
-            // ✅ STEP: Agar folder nahi hai toh create karein (with 0755 permissions)
             if (!File::isDirectory($path)) {
                 File::makeDirectory($path, 0755, true, true);
             }
 
-            // Image process aur save karein
             $img = $manager->read($request);
             $img->scaleDown(width: $width);
-            $img->toWebp(80)->save($path . '/' . $image_name); // Quality 80 for optimization
+            
+            // 🟢 Optimized for 10MB inputs
+            $img->toWebp(80)->save($path . '/' . $image_name); 
         }
         
         return $image_name;
@@ -132,63 +97,3 @@ function uploadImagesThumb($request, $fileName = null, $prefix = null) {
 
     return null;
 }
-
-// function uploadImagesThumb($request, $fileName = null, $prefix = null){
-    
-    
-
-
-//     $manager = new ImageManager(
-//         new Intervention\Image\Drivers\Gd\Driver()
-//     );
-    
-    
-//     if ($request !== null) {
-//         // open an image file
-//     $image = @$manager->read($request);
-//     $image_name = $prefix.time().'_'.rand(111,999).'.webp';
-    
-//     // Icons Convversion
-
-//     $iconPath = public_path('web/media/icon');
-//     $iconImage = @$manager->read($request);
-//     $iconImage->scaleDown(width: 200);
-//     $iconImage->save($iconPath.'/'.$image_name);
-
-    
-
-//     // xs Convversion
-
-//     $xsPath = public_path('web/media/xs');
-//     $xsImage = @$manager->read($request);
-//     $xsImage->scaleDown(width: 500);
-//     $xsImage->save($xsPath.'/'.$image_name);
-
-//     // sm Convversion
-
-//     $smPath = public_path('web/media/sm');
-//     $smImage = @$manager->read($request);
-//     $smImage->scaleDown(width: 1000);
-//     $smImage->save($smPath.'/'.$image_name);
-
-//     // md Convversion
-
-//     $mdPath = public_path('web/media/md');
-//     $mdImage = @$manager->read($request);
-//     $mdImage->scaleDown(width: 1500);
-//     $mdImage->save($mdPath.'/'.$image_name);
-
-//     // lg Convversion
-
-//     $lgPath = public_path('web/media/lg');
-//     $lgImage = @$manager->read($request);
-//     $lgImage->scaleDown(width: 3000);
-//     $lgImage->save($lgPath.'/'.$image_name);
-    
-//     return $image_name;
-//     }
-//     else{
-//         return null;
-//     }
-
-// }

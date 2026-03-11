@@ -11,11 +11,16 @@
         <div class="text-right hidden md:block">
             <p class="text-sm font-medium opacity-90">{{ Auth::user()->name }} photos</p>
         </div>
-        <div class="h-10 w-10 rounded-full overflow-hidden border border-white/10">
+        {{-- Profile/Logo Circle --}}
+        <div class="h-10 w-10 rounded-full overflow-hidden border-2 border-white/20 shadow-sm bg-white/10">
             @if(Auth::user()->logo)
+                {{-- Make sure to run 'php artisan storage:link' --}}
                 <img src="{{ asset('storage/' . Auth::user()->logo) }}" alt="User Logo" class="h-full w-full object-cover">
             @else
-                <img src="{{ asset('admin/assets/images/default-user.png') }}" class="h-full w-full object-cover">
+                {{-- Agar logo nahi hai toh initial letter dikha sakte ho ya default icon --}}
+                <div class="h-full w-full flex items-center justify-center bg-amber-400 text-gray-800 font-bold text-xs uppercase">
+                    {{ substr(Auth::user()->name, 0, 1) }}
+                </div>
             @endif
         </div>
     </div>
