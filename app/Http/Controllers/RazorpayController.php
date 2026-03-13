@@ -7,6 +7,7 @@ use Razorpay\Api\Api;
 use Exception;
 use App\Models\credit;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class RazorpayController extends Controller
 {
@@ -16,27 +17,39 @@ class RazorpayController extends Controller
     }
 
     public function payment(Request $request)
-    {
-        $api = new Api('rzp_test_SPSlUSEJS6hnwx', 'ZfbuH0IAu4MJWy7C4Rtj1m2o');
-        $amountInPaise = $request->amount * 100;
+{
+    $api = new Api('rzp_test_SPSlUSEJS6hnwx', 'ZfbuH0IAu4MJWy7C4Rtj1m2o');
+    $user = Auth::user();
+    $amount = $request->amount;
 
-        try {
-            $order = $api->order->create([
-                'receipt' => 'rcpt_' . rand(1000, 9999),
-                'amount' => $amountInPaise,
-                'currency' => 'INR',
-            ]);
-
-            return view('admin.pages.payment', [
-                'orderId' => $order['id'],
-                'amount' => $amountInPaise,
-                'plan_name' => $request->plan_name ?? 'Credit Purchase'
-            ]);
-
-        } catch (Exception $e) {
-            return "Order Error: " . $e->getMessage();
-        }
+    // 🟢 SECURITY CHECK: Rokne ke liye ki bada plan wala sasta plan na lele
+    if ($user->active_plan == 'Studio Plan' || $user->active_plan == 'Studio') {
+        return back()->with('error', 'You already have the Studio Plan (Unlimited). No need to buy smaller plans.');
     }
+
+    if (($user->active_plan == 'Pro Plan' || $user->active_plan == 'Pro') && $amount == 999) {
+        return back()->with('error', 'You already have a Pro Plan. You can only upgrade to Studio.');
+    }
+
+    $amountInPaise = $amount * 100;
+
+    try {
+        $order = $api->order->create([
+            'receipt' => 'rcpt_' . rand(1000, 9999),
+            'amount' => $amountInPaise,
+            'currency' => 'INR',
+        ]);
+
+        return view('admin.pages.payment', [
+            'orderId' => $order['id'],
+            'amount' => $amountInPaise,
+            'plan_name' => $request->plan_name ?? 'Credit Purchase'
+        ]);
+
+    } catch (Exception $e) {
+        return "Order Error: " . $e->getMessage();
+    }
+}
 
     public function callback(Request $request)
     {
@@ -57,44 +70,55 @@ class RazorpayController extends Controller
             $creditsToAdd = 0;
             $isUnlimited = false;
             $currentPlan = null;
+            $isMajorPlan = false;
 
-            // 🟢 LOGIC: Plan Hierarchy (Studio > Pro > Basic)
+            // 🟢 LOGIC: Plan Management & Hierarchy
             if ($amountInRupees == 4999) {
                 $creditsToAdd = 0; 
                 $isUnlimited = true;
                 $currentPlan = 'Studio';
+                $isMajorPlan = true;
             } elseif ($amountInRupees == 2499) {
-                // Agar user pehle se Studio nahi hai, tabhi upgrade karein
+                // User hamesha Pro le sakta hai unless woh pehle se Studio na ho
                 if ($user->active_plan != 'Studio') {
                     $creditsToAdd = 3000;
                     $isUnlimited = false;
                     $currentPlan = 'Pro';
+                    $isMajorPlan = true;
                 }
             } elseif ($amountInRupees == 999) {
-                // Agar user pehle se Pro ya Studio nahi hai, tabhi upgrade karein
+                // Basic tabhi jab user pehle se Pro/Studio na ho
                 if (!in_array($user->active_plan, ['Pro', 'Studio'])) {
                     $creditsToAdd = 1000;
                     $isUnlimited = false;
                     $currentPlan = 'Basic';
+                    $isMajorPlan = true;
                 }
             } else {
-                // Normal top-up (amount >= 200 etc), isse plan change nahi hoga
+                // Normal top-up logic
                 $creditsToAdd = $amountInRupees;
-                $isUnlimited = $user->is_unlimited; // Purana status maintain rakhein
-                $currentPlan = $user->active_plan;   // Purana plan maintain rakhein
+                $isUnlimited = $user->is_unlimited; 
+                $currentPlan = $user->active_plan;
             }
 
-            // User Model update
-            // Plan tabhi extend hoga jab teeno main plans mein se koi liya ho
-            if (in_array($amountInRupees, [999, 2499, 4999])) {
+            // 🟢 Update Expiry & Plan Status
+            if ($isMajorPlan) {
                 $user->active_plan = $currentPlan;
                 $user->is_unlimited = $isUnlimited;
-                $user->plan_expires_at = now()->addYear(); 
+
+                // Agar plan active hai toh purani date mein +1 Year karein, warna aaj se
+                $baseDate = ($user->plan_expires_at && Carbon::parse($user->plan_expires_at)->isFuture()) 
+                            ? Carbon::parse($user->plan_expires_at) 
+                            : now();
+                
+                $user->plan_expires_at = $baseDate->addYear();
             }
             
+            // Increment Credits
             if ($creditsToAdd > 0) {
-                $user->increment('credits', $creditsToAdd);
+                $user->credits += $creditsToAdd;
             }
+            
             $user->save();
 
             // Database History Entry
@@ -102,17 +126,17 @@ class RazorpayController extends Controller
                 'user_id' => $user->id,
                 'order_id' => $request->orderid,
                 'purchase_date' => now(),
-                'album_name' => $currentPlan ? $currentPlan . ' Plan' : 'Credit Top-up',
+                'album_name' => $currentPlan ? $currentPlan . ' Plan Purchase' : 'Credit Top-up',
                 'credits' => ($amountInRupees == 4999) ? 0 : $creditsToAdd,
                 'amount' => $amountInRupees,
-                'payment_type' => 'Razorpay Online',
+                'payment_type' => 'Razorpay Online', 'Debit',
                 'status' => 'Success',
                 'message' => ($amountInRupees == 4999) 
-                             ? 'Studio Plan Activated (Unlimited Albums for 1 Year)' 
-                             : $creditsToAdd . ' credits added successfully',
+                             ? 'Studio Plan Activated (Unlimited Albums)' 
+                             : $creditsToAdd . ' credits added to account',
             ]);
 
-            return redirect()->route('admin.credit')->with('success', 'Payment Successful!');
+            return redirect()->route('admin.credit')->with('success', 'Payment Successful! Your plan has been updated.');
 
         } catch (Exception $e) {
             return "Verification Failed: " . $e->getMessage();

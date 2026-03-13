@@ -6,7 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Studio;
 use App\Models\Album;
 use App\Models\Gallery;
-use App\Models\credit;
+use App\Models\Credit; // Make sure Model name is 'Credit' (Capital C)
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -21,19 +22,23 @@ class AlbumController extends Controller
 
     public function index()
     {
-        $albums = Studio::where('user_id', auth()->id())->with('albums')->latest()->get();
-        return view('admin.pages.index', compact('albums'));
+        $user_id = auth()->id();
+        
+        // Fetch albums for the projects table
+        $albums = Studio::where('user_id', $user_id)->with('album')->latest()->get();
+
+        // 🟢 FIX 1: Fetch credit history so the $creditHistory variable is not undefined
+        $creditHistory = Credit::where('user_id', $user_id)->latest()->get();
+
+        // Compact dono variables ko bhej raha hai
+        return view('admin.pages.index', compact('albums', 'creditHistory'));
     }
 
     public function store(Request $request)
     {
         $user = auth()->user();
 
-        /* LOGIC ADDED: 
-           Pehle check karenge ki user ka plan 'Studio' (Unlimited) hai ya nahi.
-           Agar Unlimited nahi hai, tabhi 100 credits check karenge.
-        */
-        if (!$user->is_unlimited && $user->credits < 100) {
+        if (!$user->is_unlimited && ($user->credits ?? 0) < 100) {
             return redirect()->back()->with('error', 'Please add credit to your account to create your album.');
         }
 
@@ -63,9 +68,8 @@ class AlbumController extends Controller
 
             $coverName = null;
             if ($request->hasFile('cover_photo')) {
-                $file = $request->file('cover_photo');
-                $coverName = time() . '_cover_' . str_replace(' ', '_', $file->getClientOriginalName());
-                $file->storeAs('album_covers', $coverName, 'public');
+                // Ensure this helper function exists in your app/Helpers/Helper.php
+                $coverName = uploadImageTemp($request, 'cover_photo', 'cover_');
             }
 
             $songName = null;
@@ -87,9 +91,7 @@ class AlbumController extends Controller
             $photoNames = [];
             if ($request->hasFile('album_photos')) {
                 foreach ($request->file('album_photos') as $photo) {
-                    $pName = time() . '_' . str_replace(' ', '_', $photo->getClientOriginalName());
-                    $photo->storeAs('galleries', $pName, 'public');
-                    $photoNames[] = $pName;
+                    $photoNames[] = uploadImagesThumb($photo, null, 'gallery_');
                 }
             }
 
@@ -99,15 +101,9 @@ class AlbumController extends Controller
                 'status' => 'active',
             ]);
 
-            /* LOGIC ADDED: 
-               Deduction sirf tab hoga jab user 'Unlimited' plan par NA HO.
-            */
             if (!$user->is_unlimited) {
-                // Credit deduction
                 $user->decrement('credits', 100);
-
-                // Credit Log Entry
-                credit::create([
+                Credit::create([
                     'user_id' => $user->id,
                     'order_id' => 'ALBUM_' . strtoupper(Str::random(10)),
                     'purchase_date' => now(),
@@ -120,7 +116,6 @@ class AlbumController extends Controller
                 ]);
                 $msg = 'Album Created and 100 Credits deducted!';
             } else {
-                // Unlimited user ke liye sirf success message, deduction nahi
                 $msg = 'Album Created successfully under Unlimited Plan!';
             }
 
@@ -144,12 +139,10 @@ class AlbumController extends Controller
 
         if ($request->hasFile('cover_photo')) {
             if ($album->cover_photo) {
-                Storage::disk('public')->delete('album_covers/' . $album->cover_photo);
+                // 🟢 FIX 2: Standardized delete call
+                deleteImages($album->cover_photo);
             }
-            $file = $request->file('cover_photo');
-            $name = time() . '_cover_' . str_replace(' ', '_', $file->getClientOriginalName());
-            $file->storeAs('album_covers', $name, 'public');
-            $albumData['cover_photo'] = $name;
+            $albumData['cover_photo'] = uploadImageTemp($request, 'cover_photo', 'cover_');
         }
 
         if ($request->hasFile('album_song')) {
@@ -164,18 +157,17 @@ class AlbumController extends Controller
 
         $album->update($albumData);
         $currentImages = is_array($gallery->images) ? $gallery->images : [];
+        
         if ($request->has('removed_images')) {
             foreach ($request->removed_images as $fileName) {
-                Storage::disk('public')->delete('galleries/' . $fileName);
+                deleteImages($fileName);
                 $currentImages = array_diff($currentImages, [$fileName]);
             }
         }
 
         if ($request->hasFile('album_photos')) {
             foreach ($request->file('album_photos') as $photo) {
-                $pName = time() . '_' . str_replace(' ', '_', $photo->getClientOriginalName());
-                $photo->storeAs('galleries', $pName, 'public');
-                $currentImages[] = $pName;
+                $currentImages[] = uploadImagesThumb($photo, null, 'gallery_');
             }
         }
 
@@ -183,56 +175,43 @@ class AlbumController extends Controller
         return redirect()->back()->with('success', 'Updated Successfully!');
     }
 
-
     public function destroy($id)
     {
-        // Eager loading album and gallery
         $studio = Studio::with(['album', 'gallery'])->findOrFail($id);
         $album = $studio->album;
         $gallery = $studio->gallery;
 
         $deletedAlbumName = $album ? $album->album_name : 'Album';
 
-        // 1. Delete Cover Photo from local storage
         if ($album && $album->cover_photo) {
-            $coverPath = 'album_covers/' . $album->cover_photo;
-            if (Storage::disk('public')->exists($coverPath)) {
-                Storage::disk('public')->delete($coverPath);
+            // 🟢 FIX 3: Ensure deleteImages function is globally accessible via composer.json
+            if (function_exists('deleteImages')) {
+                deleteImages($album->cover_photo);
             }
         }
 
-        // 2. Delete Album Song from local storage
         if ($album && $album->album_song) {
-            $songPath = 'songs/' . $album->album_song;
-            if (Storage::disk('public')->exists($songPath)) {
-                Storage::disk('public')->delete($songPath);
-            }
+            Storage::disk('public')->delete('songs/' . $album->album_song);
         }
 
-        // 3. Delete Multiple Gallery Images from local storage
         if ($gallery && $gallery->images) {
             $images = is_array($gallery->images) ? $gallery->images : json_decode($gallery->images, true);
             if (!empty($images)) {
                 foreach ($images as $img) {
-                    $imgPath = 'galleries/' . $img;
-                    if (Storage::disk('public')->exists($imgPath)) {
-                        Storage::disk('public')->delete($imgPath);
+                    if (function_exists('deleteImages')) {
+                        deleteImages($img);
                     }
                 }
             }
         }
 
-        // 4. Sabse pehle child records delete karein (agar Cascade nahi lagaya hai to)
-        if ($album)
-            $album->delete();
-        if ($gallery)
-            $gallery->delete();
-
-        // 5. Last mein main Studio record delete karein
+        if ($album) $album->delete();
+        if ($gallery) $gallery->delete();
         $studio->delete();
 
         return back()->with('success', $deletedAlbumName . ' deleted successfully');
     }
+
     public function edit($id)
     {
         $studio = Studio::where('id', $id)->where('user_id', auth()->id())->with(['album', 'gallery'])->firstOrFail();
@@ -258,10 +237,11 @@ class AlbumController extends Controller
             'data' => [
                 'album_name' => $album->album_name,
                 'studio_name' => $studio->studio_name,
-                'cover' => asset('storage/album_covers/' . $album->cover_photo),
+                'cover' => asset('web/media/lg/' . $album->cover_photo),
                 'music' => $album->album_song ? asset('storage/songs/' . $album->album_song) : null,
                 'images' => array_map(function ($img) {
-                    return asset('storage/galleries/' . $img); }, $gallery->images)
+                    return asset('web/media/lg/' . $img); 
+                }, $gallery->images)
             ]
         ]);
     }

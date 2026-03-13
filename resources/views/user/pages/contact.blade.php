@@ -47,12 +47,12 @@
                     <div class="md:w-1/3 space-y-10">
                         <div class="space-y-2">
                             <p class="text-gray-400 text-sm uppercase tracking-widest font-medium">Email</p>
-                            <p class="text-xl text-gray-700 font-light">ealbum@codnix.com</p>
+                            <p class="text-xl text-gray-700 font-light">info@alivecreate.com</p>
                         </div>
                         
                         <div class="space-y-2">
                             <p class="text-gray-400 text-sm uppercase tracking-widest font-medium">Phone</p>
-                            <p class="text-xl text-gray-700 font-light">+91 8128066331</p>
+                            <p class="text-xl text-gray-700 font-light">+91 9137634193</p>
                         </div>
 
                         <div class="pt-6 border-t border-gray-100">
@@ -75,7 +75,7 @@
                                 </div>
                                 <div class="space-y-2">
                                     <label class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Email Address:</label>
-                                    <input type="email" placeholder="you@example.com" 
+                                    <input type="email" placeholder="info@alivecreate.com" 
                                            class="w-full p-4 bg-gray-50 border border-gray-100 rounded focus:outline-none focus:border-blue-400 focus:bg-white transition shadow-sm">
                                 </div>
                             </div>

@@ -4,96 +4,105 @@ use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
 use Illuminate\Support\Facades\File;
 
-function testHelper(): string{
-    return 'testing 000';
-}
+/**
+ * 🟢 Function to Delete Images from all folders
+ */
+if (!function_exists('deleteImages')) {
+    function deleteImages($imageName) {
+        if (!$imageName) return;
 
-function deleteImages($image){
-    if(isset($image)){
-        // Sabhi folders se image delete karne ka logic
-        $folders = ['lg', 'md', 'sm', 'xs', 'icon'];
-        foreach($folders as $folder) {
-            $path = public_path('web/media/' . $folder . '/' . $image);
-            if(File::exists($path)){
-                unlink($path);
+        $folders = ['icon', 'xs', 'sm', 'md', 'lg'];
+        
+        foreach ($folders as $folder) {
+            $path = public_path('web/media/' . $folder . '/' . $imageName);
+            if (File::exists($path)) {
+                File::delete($path);
             }
         }
     }
 }
 
-function uploadImageTemp($request, $fileName = 'image', $prefix = null){
-    // Badi images (10MB+) ke liye memory limit badhana zaroori hai
-    ini_set('memory_limit', '512M'); 
-    
-    $manager = new ImageManager(new Driver());
-    
-    if (request()->hasFile($fileName)) {
-        $file = $request->file($fileName);
-        $image_name = $prefix.time().'_'.rand(111,999).'.webp';
+/**
+ * 🟢 Function for Single Image Upload (e.g., Cover Photo)
+ */
+if (!function_exists('uploadImageTemp')) {
+    function uploadImageTemp($request, $fileName = 'image', $prefix = null){
+        ini_set('memory_limit', '512M');
+        set_time_limit(300); 
         
-        // Sizes aur unki widths define karein
-        $sizes = [
-            'icon' => 200,
-            'xs'   => 500,
-            'sm'   => 1000,
-            'md'   => 1500,
-            'lg'   => 3000
-        ];
-
-        foreach ($sizes as $folder => $width) {
-            $path = public_path('web/media/' . $folder);
+        $manager = new ImageManager(new Driver());
+        
+        if ($request->hasFile($fileName)) {
+            $file = $request->file($fileName);
+            $image_name = $prefix.time().'_'.rand(111,999).'.webp';
             
-            if (!File::isDirectory($path)) {
-                File::makeDirectory($path, 0755, true, true);
+            $sizes = [
+                'icon' => 150,
+                'xs'   => 400,
+                'sm'   => 800,
+                'md'   => 1200,
+                'lg'   => 2000 
+            ];
+
+            foreach ($sizes as $folder => $width) {
+                $path = public_path('web/media/' . $folder);
+                
+                if (!File::isDirectory($path)) {
+                    File::makeDirectory($path, 0755, true, true);
+                }
+
+                // Optimization: Read image once outside if possible, but for v3 this is safe
+                $img = $manager->read($file);
+                $img->scaleDown(width: $width);
+                
+                // Encode and Save
+                $encoded = $img->toWebp(65);
+                $encoded->save($path.'/'.$image_name);
             }
-
-            // Image ko read karke process karein
-            $img = $manager->read($file);
-            $img->scaleDown(width: $width);
             
-            // 🟢 10MB optimization logic: webp conversion with 75% quality
-            // Isse 10MB ki file 1MB se bhi kam ho jayegi par quality professional rahegi
-            $img->toWebp(75)->save($path.'/'.$image_name);
+            return $image_name;
         }
-        
-        return $image_name;
+        return null;
     }
-    return null;
 }
 
-function uploadImagesThumb($request, $fileName = null, $prefix = null) {
-    // Memory limit for heavy processing
-    ini_set('memory_limit', '512M');
-    
-    $manager = new ImageManager(new Driver());
-    
-    if ($request !== null) {
-        $image_name = $prefix . time() . '_' . rand(111, 999) . '.webp';
+/**
+ * 🟢 Function for Multiple Images (Gallery)
+ */
+if (!function_exists('uploadImagesThumb')) {
+    function uploadImagesThumb($fileInstance, $dummy = null, $prefix = null) {
+        ini_set('memory_limit', '512M');
+        set_time_limit(300);
         
-        $sizes = [
-            'icon' => 200,
-            'xs'   => 500,
-            'sm'   => 1000,
-            'md'   => 1800,
-            'lg'   => 3000
-        ];
-
-        foreach ($sizes as $folder => $width) {
-            $path = public_path('web/media/' . $folder);
-
-            if (!File::isDirectory($path)) {
-                File::makeDirectory($path, 0755, true, true);
-            }
-
-            $img = $manager->read($request);
-            $img->scaleDown(width: $width);
+        $manager = new ImageManager(new Driver());
+        
+        if ($fileInstance !== null) {
+            $image_name = $prefix . time() . '_' . rand(111, 999) . '.webp';
             
-            // 🟢 Optimized for 10MB inputs
-            $img->toWebp(80)->save($path . '/' . $image_name); 
-        }
-        
-        return $image_name;
-    }
+            $sizes = [
+                'icon' => 150,
+                'xs'   => 400,
+                'sm'   => 800,
+                'md'   => 1200,
+                'lg'   => 1800 
+            ];
 
-    return null;
+            foreach ($sizes as $folder => $width) {
+                $path = public_path('web/media/' . $folder);
+
+                if (!File::isDirectory($path)) {
+                    File::makeDirectory($path, 0755, true, true);
+                }
+
+                $img = $manager->read($fileInstance);
+                $img->scaleDown(width: $width);
+                
+                $encoded = $img->toWebp(60);
+                $encoded->save($path . '/' . $image_name); 
+            }
+            
+            return $image_name;
+        }
+        return null;
+    }
 }
