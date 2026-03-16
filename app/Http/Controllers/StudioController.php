@@ -14,12 +14,18 @@ class StudioController extends Controller
     // Dashboard Index
     public function index()
     {
-        $albums = Studio::where('user_id', auth()->id())
+        $user_id = auth()->id();
+        
+        // Fetch albums for the projects table
+        $albums = Studio::where('user_id', $user_id)
             ->with(['album', 'gallery'])
             ->latest()
-            ->get();
+                ->get();
 
-        return view('admin.pages.index', compact('albums'));
+        // 🟢 Dashboard par bhi credit history bhej rahe hain taaki table load ho sake
+        $creditHistory = Credit::where('user_id', $user_id)->latest()->get();
+
+        return view('admin.pages.index', compact('albums', 'creditHistory'));
     }
 
     public function profile()
@@ -53,7 +59,6 @@ class StudioController extends Controller
 
     /**
      * 🟢 PROFILE UPDATE LOGIC (Smart Storage)
-     * Isme sirf file ka naam DB mein jayega
      */
     public function update(Request $request)
     {
@@ -63,26 +68,26 @@ class StudioController extends Controller
             'name' => 'required|string|max:255',
             'business_name' => 'required|string|max:255',
             'contact_no' => 'required|string|max:15',
-            'logo' => 'nullable|image', // Validation remove kar di user ke request par
+            'logo' => 'nullable|image|max:5120', // 5MB limit for logo
         ]);
 
-        $logoName = $user->logo; // Purana naam
+        $logoName = $user->logo; // Default to old name
 
         if ($request->hasFile('logo')) {
             // 1. Purani file delete karo (cleanup)
-            if ($user->logo) {
+            if ($user->logo && Storage::disk('public')->exists('logos/' . $user->logo)) {
                 Storage::disk('public')->delete('logos/' . $user->logo);
             }
 
             // 2. Nayi file ka unique naam banao
             $file = $request->file('logo');
-            $logoName = time() . '_' . $file->getClientOriginalName();
+            $logoName = time() . '_' . str_replace(' ', '_', $file->getClientOriginalName());
 
-            // 3. File ko local storage folder mein save karo
+            // 3. File save karo
             $file->storeAs('logos', $logoName, 'public');
         }
 
-        // 4. DB mein sirf 'logoName' save hoga
+        // 4. Update Database
         $user->update([
             'name' => $request->name,
             'business_name' => $request->business_name,
@@ -107,8 +112,9 @@ class StudioController extends Controller
 
     public function credit()
     {
-        $creditHistory = Credit::where('user_id', Auth::id())
-            ->orderBy('created_at', 'desc')
+        // 🟢 Transactions fetch karne ka standard logic
+        $creditHistory = Credit::where('user_id', auth()->id())
+            ->latest()
             ->get();
 
         return view('admin.pages.credit', compact('creditHistory'));

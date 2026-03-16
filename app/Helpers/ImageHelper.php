@@ -24,6 +24,7 @@ if (!function_exists('deleteImages')) {
 
 /**
  * 🟢 Function for Single Image Upload (e.g., Cover Photo)
+ * Optimized to prevent memory leakage
  */
 if (!function_exists('uploadImageTemp')) {
     function uploadImageTemp($request, $fileName = 'image', $prefix = null){
@@ -44,6 +45,9 @@ if (!function_exists('uploadImageTemp')) {
                 'lg'   => 2000 
             ];
 
+            // 🟢 READ ONCE: Memory efficiency
+            $originalImage = $manager->read($file);
+
             foreach ($sizes as $folder => $width) {
                 $path = public_path('web/media/' . $folder);
                 
@@ -51,13 +55,14 @@ if (!function_exists('uploadImageTemp')) {
                     File::makeDirectory($path, 0755, true, true);
                 }
 
-                // Optimization: Read image once outside if possible, but for v3 this is safe
-                $img = $manager->read($file);
+                // Clone the original to perform resizing without affecting the original object
+                $img = clone $originalImage;
+                
+                // 🟢 Resize & Optimize
                 $img->scaleDown(width: $width);
                 
-                // Encode and Save
-                $encoded = $img->toWebp(65);
-                $encoded->save($path.'/'.$image_name);
+                // Encode to WebP (Quality 75 is perfect for HD + Low Size)
+                $img->toWebp(75)->save($path.'/'.$image_name);
             }
             
             return $image_name;
@@ -68,6 +73,7 @@ if (!function_exists('uploadImageTemp')) {
 
 /**
  * 🟢 Function for Multiple Images (Gallery)
+ * Optimized for high performance gallery uploads
  */
 if (!function_exists('uploadImagesThumb')) {
     function uploadImagesThumb($fileInstance, $dummy = null, $prefix = null) {
@@ -84,8 +90,11 @@ if (!function_exists('uploadImagesThumb')) {
                 'xs'   => 400,
                 'sm'   => 800,
                 'md'   => 1200,
-                'lg'   => 1800 
+                'lg'   => 1920 // Standard Full HD width
             ];
+
+            // 🟢 READ ONCE: Isse 10MB ki file bhi server crash nahi karegi
+            $originalImage = $manager->read($fileInstance);
 
             foreach ($sizes as $folder => $width) {
                 $path = public_path('web/media/' . $folder);
@@ -94,11 +103,13 @@ if (!function_exists('uploadImagesThumb')) {
                     File::makeDirectory($path, 0755, true, true);
                 }
 
-                $img = $manager->read($fileInstance);
+                $img = clone $originalImage;
+                
+                // 🟢 High Quality Scaling
                 $img->scaleDown(width: $width);
                 
-                $encoded = $img->toWebp(60);
-                $encoded->save($path . '/' . $image_name); 
+                // Quality 70-80 is sweet spot for photography albums
+                $img->toWebp(75)->save($path . '/' . $image_name); 
             }
             
             return $image_name;

@@ -259,7 +259,7 @@ class AlbumController extends Controller
     {
         $album = Album::where('unique_code', $code)->with('studio.gallery')->firstOrFail();
         $images = $album->studio->gallery->images;
-        return view('user.pages.viewer', compact('album', 'images'));
+        return view('user.pages.access', compact('album', 'images'));
     }
 
     public function show($id)

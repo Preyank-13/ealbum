@@ -45,12 +45,11 @@
             height: 420px !important;
         }
 
-        /* 🟢 Image Fitting Logic (object-fit: cover) */
+        /* 🟢 Image Fitting Logic (object-fit: contain) */
         #flipbook img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            /* 👈 Isse image center se crop hoke fit hogi, stretch nahi hogi */
+            object-fit: contain; /* 👈 Correction: contain se image kategi nahi, poori dikhegi */
             object-position: center;
             pointer-events: none;
             background-color: #000;
@@ -224,26 +223,18 @@
         let isAutoPlaying = false;
         let playInterval;
 
-        function setCookie(name, value, minutes) {
-            let date = new Date();
-            date.setTime(date.getTime() + (minutes * 60 * 1000));
-            document.cookie = name + "=" + (value || "") + "; expires=" + date.toUTCString() + "; path=/";
-        }
-
-        function getCookie(name) {
-            let nameEQ = name + "=";
-            let ca = document.cookie.split(';');
-            for (let i = 0; i < ca.length; i++) {
-                let c = ca[i];
-                while (c.charAt(0) == ' ') c = c.substring(1, c.length);
-                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
-            }
-            return null;
-        }
-
         $(document).ready(function () {
-            const savedCode = getCookie("album_access_code");
-            if (savedCode) { $('#unique_code').val(savedCode); unlockAlbum(); }
+            // 🟢 URL DETECTION LOGIC (Correction)
+            const pathSegments = window.location.pathname.split('/');
+            const urlCode = pathSegments[pathSegments.length - 1];
+
+            // Check if code exists in URL and is not the word 'access'
+            if (urlCode && urlCode.length >= 5 && urlCode !== 'access') {
+                $('#unique_code').val(urlCode);
+                unlockAlbum(); // URL wali ID se auto unlock
+            } else {
+                $('#access-modal').show(); // Normal case me modal dikhao
+            }
         });
 
         async function shareAlbum() {
@@ -273,7 +264,6 @@
                 data: { _token: "{{ csrf_token() }}", access_code: code },
                 success: function (res) {
                     if (res.success) {
-                        setCookie("album_access_code", code, 10);
                         const data = res.data;
                         const newUrl = window.location.origin + '/' + code;
                         window.history.pushState({ path: newUrl }, '', newUrl);
@@ -308,11 +298,11 @@
                             $('#loader').fadeOut(600);
                             $('#viewer-container').removeClass('hidden');
 
-                            /* 🟢 Initialize with Double Page Width */
+                            /* 🟢 Correction: Added autoCenter and proper duration */
                             flipbook.show().turn({
-                                width: 1200,  // Double Width for book spread
+                                width: 1200, 
                                 height: 420,
-                                autoCenter: false, // Handle centering manually via CSS
+                                autoCenter: true, 
                                 elevation: 200,
                                 duration: 1500,
                                 gradients: true,
@@ -337,7 +327,6 @@
             });
         }
 
-        // Remaining functions unchanged...
         function toggleThumbnails() { $('#thumbnail-strip').fadeToggle(); }
         function toggleFullScreen() {
             if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); }

@@ -9,8 +9,7 @@
 
             <div class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
 
-                <div
-                    class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 flex flex-wrap items-center justify-between gap-4">
+                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 flex flex-wrap items-center justify-between gap-4">
                     <div class="flex items-center gap-4">
                         <a href="{{ route('admin.index') }}"
                             class="bg-purple-500 text-white px-5 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-purple-600 transition active:scale-95">
@@ -128,41 +127,25 @@
 
                             <div class="space-y-2">
                                 <label class="text-xs font-bold text-gray-500 uppercase">Album Cover Photo (Single)</label>
-
-                                {{-- 🟢 Container width limit kar di hai taaki bahut bada na dikhe --}}
                                 <div class="max-w-[200px]">
-
-                                    {{-- 🟢 h-auto lagaya hai taaki photo ke hisab se height badhe --}}
                                     <div
                                         class="relative w-full h-auto min-h-[100px] border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50 group hover:border-indigo-400 transition-all overflow-hidden">
-
-                                        {{-- Input file as it is... --}}
                                         <input type="file" id="coverPhoto" name="cover_photo" accept="image/*" required
                                             class="absolute inset-0 opacity-0 cursor-pointer z-20">
-
-                                        {{-- Placeholder --}}
                                         <div id="coverPlaceholder"
                                             class="flex flex-col items-center justify-center p-6 text-gray-400 text-xs gap-2 text-center">
                                             <i class="fa-solid fa-cloud-arrow-up text-2xl text-gray-300"></i>
                                             <span class="font-medium">Upload Cover</span>
                                         </div>
-
-                                        {{-- 🟢 Preview Container: Iski height image content decide karega --}}
                                         <div id="coverPreviewContainer" class="hidden relative w-full z-30 bg-white">
-
-                                            {{-- 🟢 block aur w-full h-auto se ye photo ke original ratio mein khulega --}}
                                             <img src="" id="coverImg" class="block w-full h-auto object-contain">
-
-                                            {{-- Delete button --}}
                                             <button type="button" id="removeCover"
                                                 class="absolute top-2 right-2 bg-red-500 text-white w-7 h-7 rounded-full flex items-center justify-center hover:bg-red-600 transition shadow-md">
                                                 <i class="fa-solid fa-xmark text-sm"></i>
                                             </button>
                                         </div>
-
                                     </div>
-                                    <p class="text-[10px] text-gray-400 mt-1 italic">* Height will adjust based on your
-                                        photo.</p>
+                                    <p class="text-[10px] text-gray-400 mt-1 italic">* Optimized for high quality.</p>
                                 </div>
                             </div>
                         </div>
@@ -186,8 +169,7 @@
 
                             <div class="space-y-4">
                                 <div class="flex items-center justify-between">
-                                    <label class="text-xs font-bold text-gray-500 uppercase">Upload Album Photos (Max 50 |
-                                        3MB Each)</label>
+                                    <label class="text-xs font-bold text-gray-500 uppercase">Upload Album Photos (Max 50 Photos)</label>
                                     <span id="imageCount"
                                         class="text-[10px] font-bold text-gray-400 bg-gray-100 px-3 py-1 rounded-full uppercase">0
                                         / 50 Selected</span>
@@ -218,7 +200,7 @@
     <script>
         $(document).ready(function () {
 
-            // 1. UNIQUE CODE GENERATOR (0-9, A-Z)
+            // 1. UNIQUE CODE GENERATOR
             function generateUniqueCode(length = 10) {
                 const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
                 let result = '';
@@ -243,17 +225,16 @@
                 if ($(this).val() === 'Custom') {
                     $(this).addClass('hidden');
                     $('#customTypeInput').removeClass('hidden').focus();
-                    // Update value on input
                     $('#customTypeInput').on('input', function () {
                         $('#albumTypeSelect').val($(this).val());
                     });
                 }
             });
 
-            // 3. COVER PHOTO PREVIEW
+            // 3. COVER PHOTO PREVIEW (🟢 Changed Limit to 20MB)
             $('#coverPhoto').change(function () {
                 const file = this.files[0];
-                if (file && file.size <= 3 * 1024 * 1024) {
+                if (file && file.size <= 20 * 1024 * 1024) { 
                     const reader = new FileReader();
                     reader.onload = function (e) {
                         $('#coverImg').attr('src', e.target.result);
@@ -262,7 +243,7 @@
                     }
                     reader.readAsDataURL(file);
                 } else if (file) {
-                    alert("Cover image 3MB se badi hai!");
+                    alert("Bhai, cover photo 20MB se badi hai! Thodi choti file upload karo.");
                     $(this).val('');
                 }
             });
@@ -274,11 +255,11 @@
                 $('#coverPlaceholder').removeClass('hidden');
             });
 
-            // 4. BULK IMAGES VALIDATION
+            // 4. BULK IMAGES VALIDATION (🟢 Changed Limit to 20MB per photo)
             $('#albumImages').change(function () {
                 const files = this.files;
                 if (files.length > 50) {
-                    alert("Sirf 50 photos hi allowed hain!");
+                    alert("Maximum 50 photos hi allowed hain!");
                     $(this).val('');
                     return;
                 }
@@ -287,7 +268,8 @@
                 let validCount = 0;
 
                 Array.from(files).forEach(file => {
-                    if (file.size <= 3 * 1024 * 1024) {
+                    // Check individual file size (20MB)
+                    if (file.size <= 20 * 1024 * 1024) {
                         validCount++;
                         const reader = new FileReader();
                         reader.onload = function (e) {
@@ -298,7 +280,7 @@
                         }
                         reader.readAsDataURL(file);
                     } else {
-                        console.warn(`${file.name} is too large.`);
+                        console.warn(`${file.name} is too large (>20MB).`);
                     }
                 });
 
@@ -308,8 +290,8 @@
             $('#songInput').change(function () {
                 const file = this.files[0];
                 if (file) {
-                    if (file.size > 10 * 1024 * 1024) {
-                        alert("Song size 10MB se kam honi chahiye!");
+                    if (file.size > 15 * 1024 * 1024) { // Music limit 15MB
+                        alert("Song size 15MB se kam honi chahiye!");
                         $(this).val('');
                         return;
                     }
@@ -320,9 +302,8 @@
             });
 
             $('#mainSubmitBtn').click(function () {
-                // Final validation check before submit
                 if (!$('#coverPhoto').val()) {
-                    alert("Please upload a cover photo!");
+                    alert("Kripya cover photo upload karein!");
                     return;
                 }
                 $('#albumForm').submit();
@@ -331,29 +312,12 @@
     </script>
 
     <style>
-        .animate-fade-in-up {
-            animation: fadeInUp 0.4s ease-out;
-        }
-
+        .animate-fade-in-up { animation: fadeInUp 0.4s ease-out; }
         @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 5px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #e2e8f0;
-            border-radius: 10px;
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
     </style>
 @endsection

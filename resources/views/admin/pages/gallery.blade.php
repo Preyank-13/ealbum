@@ -179,7 +179,7 @@
                                 <div id="currentGalleryGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 pb-20">
                                     @foreach($gallery->images as $image)
                                         <div class="gallery-item group relative aspect-square bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all" data-image-path="{{ $image }}">
-                                            <img src="{{ asset('storage/galleries/' . $image) }}" class="w-full h-full object-cover">                                    
+                                            <img src="{{ asset('web/media/sm/' . $image) }}" class="w-full h-full object-cover">                                    
                                             <button type="button" class="btn-remove-image absolute top-2 right-2 bg-red-500 text-white w-7 h-7 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
                                                 <i class="fa-solid fa-xmark"></i>
                                             </button>

@@ -10,6 +10,31 @@
             </button>
         </div>
 
+        {{-- 🟡 Dynamic Alert Message Section --}}
+        @php
+            $user = auth()->user();
+            $isExpired = $user->active_plan && $user->plan_expires_at && now()->gt($user->plan_expires_at);
+            $lowCredits = !$user->is_unlimited && ($user->credits < 100);
+        @endphp
+
+        @if($isExpired || $lowCredits)
+        <div class="px-8 py-4 bg-yellow-50 border-b border-yellow-100 flex items-center gap-4">
+            <div class="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center text-white shrink-0 shadow-sm">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div>
+                <p class="text-[13px] font-black text-yellow-800 uppercase tracking-tight">
+                    @if($isExpired)
+                        Please Upgrade your plan, your old plan ({{ $user->active_plan }}) has expired!
+                    @elseif($lowCredits)
+                        You have no more credits to create album. Please purchase a plan to continue.
+                    @endif
+                </p>
+                <p class="text-[10px] text-yellow-600 font-bold mt-0.5">Choose a plan below to activate your account instantly.</p>
+            </div>
+        </div>
+        @endif
+
         <div class="flex-1 overflow-y-auto p-6 md:p-12 custom-scrollbar bg-white">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
 
@@ -29,7 +54,7 @@
                     </ul>
 
                     @php $active = auth()->user()->active_plan; @endphp
-                    @if($active == 'Pro Plan' || $active == 'Studio Plan' || $active == 'Pro' || $active == 'Studio')
+                    @if(($active == 'Pro Plan' || $active == 'Studio Plan' || $active == 'Pro' || $active == 'Studio') && !$isExpired)
                         <button class="w-full bg-gray-100 text-gray-400 py-4 rounded-full text-xs font-black uppercase cursor-not-allowed" disabled>Plan Active</button>
                     @else
                         <form action="{{ route('razorpay.payment') }}" method="POST">
@@ -58,7 +83,7 @@
                         <li class="flex items-center gap-3 text-blue-500 font-bold uppercase text-[9px]"><i class="fa-solid fa-check"></i> PRIORITY SUPPORT</li>
                     </ul>
 
-                    @if($active == 'Studio' || $active == 'Studio Plan')
+                    @if(($active == 'Studio' || $active == 'Studio Plan') && !$isExpired)
                         <button class="w-full bg-gray-100 text-gray-400 py-4 rounded-full text-xs font-black uppercase cursor-not-allowed" disabled>Studio Active</button>
                     @else
                         <form action="{{ route('razorpay.payment') }}" method="POST">
@@ -86,7 +111,7 @@
                         <li class="flex items-center gap-3"><i class="fa-solid fa-check text-green-500"></i> Priority support</li>
                     </ul>
 
-                    @if(($active == 'Studio' || $active == 'Studio Plan') && auth()->user()->plan_expires_at && now()->lt(auth()->user()->plan_expires_at))
+                    @if(($active == 'Studio' || $active == 'Studio Plan') && !$isExpired)
                         <button class="w-full bg-green-100 text-green-600 py-4 rounded-full text-xs font-black uppercase cursor-not-allowed" disabled>Already Active</button>
                     @else
                         <form action="{{ route('razorpay.payment') }}" method="POST">
