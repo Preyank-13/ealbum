@@ -99,7 +99,7 @@
 
                                                         <div class="flex flex-col items-center justify-center">
                                                             <span class="text-indigo-600 font-black text-sm">
-                                                                {{ $seqLeft }} Albums Left
+                                                                {{ $seqLeft }} Albums Left to create
                                                             </span>
                                                             <span class="text-[9px] text-gray-400 font-bold uppercase tracking-tighter mt-0.5">
                                                                 After this creation
